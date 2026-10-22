@@ -1,19 +1,77 @@
-"""Check the static landing page's local links and essential metadata."""
+"""Check static site references, metadata, and visible typography."""
 
 from __future__ import annotations
 
 import re
 import sys
+import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
+
+DASHES = {"\u2013": "en dash", "\u2014": "em dash", "\u2212": "minus sign"}
+CSS_QUOTED = r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')"""
+CSS_CONTENT = re.compile(
+    r"\bcontent\s*:\s*((?:" + CSS_QUOTED + r"|[^;}])*)", re.IGNORECASE | re.DOTALL
+)
+CSS_STRING = re.compile(CSS_QUOTED)
+CSS_URL = re.compile(r"""url\(\s*['"]?([^'")]+)""", re.IGNORECASE)
+
+
+def dash_errors(text: str, source: str) -> list[str]:
+    """Report visible dash glyphs without rejecting ASCII flags or CSS values."""
+    return [
+        f"{source}: {name} (U+{ord(char):04X}) in visible text"
+        for char, name in DASHES.items()
+        if char in text
+    ]
+
+
+def decode_css_string(raw: str) -> str:
+    """Decode CSS escapes left to right so an escaped backslash stays literal."""
+    output: list[str] = []
+    position = 0
+    while position < len(raw):
+        if raw[position] != "\\" or position + 1 == len(raw):
+            output.append(raw[position])
+            position += 1
+            continue
+        position += 1
+        if raw[position] in "\r\n\f":
+            if raw[position : position + 2] == "\r\n":
+                position += 2
+            else:
+                position += 1
+            continue
+        start = position
+        while (
+            position < len(raw)
+            and position - start < 6
+            and raw[position] in "0123456789abcdefABCDEF"
+        ):
+            position += 1
+        if position > start:
+            codepoint = int(raw[start:position], 16)
+            if codepoint == 0 or codepoint > 0x10FFFF or 0xD800 <= codepoint <= 0xDFFF:
+                codepoint = 0xFFFD
+            output.append(chr(codepoint))
+            if position < len(raw) and raw[position] in " \t\r\n\f":
+                if raw[position : position + 2] == "\r\n":
+                    position += 2
+                else:
+                    position += 1
+        else:
+            output.append(raw[position])
+            position += 1
+    return "".join(output)
 
 
 class SiteParser(HTMLParser):
     """Collect references without executing page content."""
 
-    def __init__(self) -> None:
+    def __init__(self, source: str) -> None:
         super().__init__(convert_charrefs=True)
+        self.source = source
         self.ids: set[str] = set()
         self.references: list[tuple[str, str]] = []
         self.errors: list[str] = []
@@ -23,9 +81,12 @@ class SiteParser(HTMLParser):
         self.title_text = ""
         self.meta: dict[str, list[str]] = {}
         self.canonical: list[str] = []
+        self.hidden_depth = 0
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         values = dict(attrs)
+        if tag in {"script", "style"}:
+            self.hidden_depth += 1
         if tag == "html":
             self.html_lang = values.get("lang") or ""
         if tag == "title":
@@ -34,14 +95,19 @@ class SiteParser(HTMLParser):
         element_id = values.get("id")
         if element_id is not None:
             if not element_id:
-                self.errors.append("empty id")
+                self.errors.append(f"{self.source}: empty id")
             elif element_id in self.ids:
-                self.errors.append(f"duplicate id: {element_id}")
+                self.errors.append(f"{self.source}: duplicate id: {element_id}")
             else:
                 self.ids.add(element_id)
         for attribute in ("href", "src"):
             if attribute in values:
                 self.references.append((attribute, values[attribute] or ""))
+        for attribute in ("alt", "title", "aria-label"):
+            if values.get(attribute):
+                self.errors.extend(
+                    dash_errors(values[attribute] or "", f"{self.source} {attribute}")
+                )
         if tag == "meta":
             key = values.get("name") or values.get("property")
             if key:
@@ -52,66 +118,133 @@ class SiteParser(HTMLParser):
     def handle_endtag(self, tag: str) -> None:
         if tag == "title":
             self.in_title = False
+        if tag in {"script", "style"}:
+            self.hidden_depth = max(0, self.hidden_depth - 1)
 
     def handle_data(self, data: str) -> None:
         if self.in_title:
             self.title_text += data
+        if not self.hidden_depth:
+            self.errors.extend(dash_errors(data, f"{self.source}:{self.getpos()[0]}"))
 
 
-def local_reference(raw: str, site: Path, source: str, errors: list[str]) -> None:
-    """Validate a local URL without allowing it to leave the static site tree."""
+def project_prefix(index: SiteParser, errors: list[str]) -> str | None:
+    """Map published Pages paths back to this site's directory."""
+    if len(index.canonical) > 1:
+        errors.append("index.html: duplicate canonical link")
+    if not index.canonical:
+        return None
+    try:
+        url = urlsplit(index.canonical[0])
+    except ValueError:
+        errors.append("index.html: malformed canonical URL")
+        return None
+    if url.scheme != "https" or not url.netloc or url.fragment or not url.path.endswith("/"):
+        errors.append("index.html: canonical URL must be absolute HTTPS with a directory path")
+        return None
+    return url.path
+
+
+def resolve_reference(
+    raw: str, site: Path, current: Path, prefix: str | None, source: str, errors: list[str]
+) -> tuple[Path | None, str]:
+    """Resolve local paths without traversal or unrelated site-root paths."""
     if not raw.strip():
         errors.append(f"{source}: empty reference")
-        return
-    url = urlsplit(raw)
+        return None, ""
+    try:
+        url = urlsplit(raw)
+    except ValueError:
+        errors.append(f"{source}: malformed URL {raw}")
+        return None, ""
     if raw.startswith("//") or url.scheme in {"javascript", "data", "file"}:
         errors.append(f"{source}: unsafe reference {raw}")
-        return
+        return None, ""
     if url.scheme or url.netloc:
         if url.scheme not in {"http", "https", "mailto", "tel"}:
             errors.append(f"{source}: unsupported URL scheme {raw}")
-        return
+        return None, ""
     path = unquote(url.path)
-    if path.startswith("/") or ".." in Path(path).parts or "\\" in path:
+    if ".." in Path(path).parts or "\\" in path:
         errors.append(f"{source}: unsafe relative path {raw}")
-        return
-    if path:
-        target = (site / path).resolve()
-        if not target.is_relative_to(site.resolve()) or not target.is_file():
-            errors.append(f"{source}: missing local file {raw}")
+        return None, ""
+    if path.startswith("/"):
+        if prefix is None or not path.startswith(prefix):
+            errors.append(f"{source}: unrelated site-root path {raw}")
+            return None, ""
+        target = site / path[len(prefix) :]
+    else:
+        target = current.parent / path if path else current
+    target = target.resolve()
+    if not target.is_relative_to(site):
+        errors.append(f"{source}: unsafe relative path {raw}")
+        return None, ""
+    if target.is_dir():
+        target /= "index.html"
+    if not target.is_file():
+        errors.append(f"{source}: missing local file {raw}")
+        return None, ""
+    return target, unquote(url.fragment)
 
 
 def check(site: Path) -> list[str]:
+    site = site.resolve()
     index = site / "index.html"
     if not index.is_file():
         return [f"missing {index}"]
-    parser = SiteParser()
-    parser.feed(index.read_text(encoding="utf-8"))
-    parser.close()
-    errors = parser.errors
+    errors: list[str] = []
+    pages: dict[Path, SiteParser] = {}
+    for html in sorted(site.rglob("*.html")):
+        parser = SiteParser(str(html.relative_to(site)))
+        parser.feed(html.read_text(encoding="utf-8"))
+        parser.close()
+        pages[html] = parser
+        errors.extend(parser.errors)
+
+    parser = pages[index]
     if not parser.html_lang.strip():
-        errors.append("missing html lang")
+        errors.append("index.html: missing html lang")
     if parser.title_count != 1 or not parser.title_text.strip():
-        errors.append("expected one non-empty title")
+        errors.append("index.html: expected one non-empty title")
     for key in ("viewport", "description"):
         if len(parser.meta.get(key, [])) != 1 or not parser.meta[key][0].strip():
-            errors.append(f"expected one non-empty {key} meta tag")
-    if len(parser.canonical) > 1:
-        errors.append("duplicate canonical link")
-    for canonical in parser.canonical:
-        url = urlsplit(canonical)
-        if url.scheme != "https" or not url.netloc or url.fragment:
-            errors.append("canonical URL must be absolute HTTPS without a fragment")
-    for attribute, raw in parser.references:
-        if raw.startswith("#"):
-            anchor = unquote(raw[1:])
-            if not anchor or anchor not in parser.ids:
-                errors.append(f"dangling anchor: {raw}")
-        else:
-            local_reference(raw, site, attribute, errors)
+            errors.append(f"index.html: expected one non-empty {key} meta tag")
+    prefix = project_prefix(parser, errors)
+
+    for html, page in pages.items():
+        for attribute, raw in page.references:
+            target, anchor = resolve_reference(
+                raw, site, html, prefix, f"{page.source} {attribute}", errors
+            )
+            if target is not None and raw.endswith("#"):
+                errors.append(f"{page.source}: empty anchor {raw}")
+            elif target in pages and anchor and anchor not in pages[target].ids:
+                errors.append(f"{page.source}: dangling anchor {raw}")
+
     for css in site.rglob("*.css"):
-        for raw in re.findall(r"url\(\s*['\"]?([^'\")]+)", css.read_text(encoding="utf-8")):
-            local_reference(raw.strip(), site, f"{css.relative_to(site)} url()", errors)
+        source = str(css.relative_to(site))
+        content = re.sub(r"/\*.*?\*/", "", css.read_text(encoding="utf-8"), flags=re.DOTALL)
+        for value in CSS_CONTENT.findall(content):
+            for match in CSS_STRING.finditer(value):
+                decoded = decode_css_string(match.group()[1:-1])
+                errors.extend(dash_errors(decoded, f"{source} content"))
+        for raw in CSS_URL.findall(content):
+            resolve_reference(raw.strip(), site, css, prefix, f"{source} url()", errors)
+
+    for svg in site.rglob("*.svg"):
+        source = str(svg.relative_to(site))
+        try:
+            data = svg.read_bytes()
+            if len(data) > 1_000_000 or b"<!DOCTYPE" in data or b"<!ENTITY" in data:
+                errors.append(f"{source}: SVG is too large or contains a DTD")
+                continue
+            root = ET.fromstring(data)  # noqa: S314 - bounded local SVG without DTD/entities
+        except ET.ParseError as exc:
+            errors.append(f"{source}: invalid SVG: {exc}")
+            continue
+        for element in root.iter():
+            if element.tag.rsplit("}", 1)[-1] in {"text", "title", "desc"}:
+                errors.extend(dash_errors("".join(element.itertext()), f"{source} text"))
     return errors
 
 

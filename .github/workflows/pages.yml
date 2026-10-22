@@ -22,7 +22,9 @@ jobs:
         with:
           persist-credentials: false
       - name: Check links and metadata
-        run: python3 scripts/check_site.py website
+        run: |
+          python3 scripts/check_site.py website
+          python3 -B -m unittest discover -s website/tests -p '*_test.py'
       - name: Check JavaScript syntax and demo behavior
         run: |
           node --check website/site.js

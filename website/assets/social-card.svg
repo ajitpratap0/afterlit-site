@@ -8,7 +8,7 @@
     <text x="64" y="395" font-family="Arial,sans-serif" font-size="22">Explore. Approve. Verify. Keep it local.</text>
     <text x="64" y="552" font-family="monospace" font-size="13" letter-spacing="1">PRE-ALPHA / OWNED BLE DEVICES / HARDWARE VALIDATION PENDING</text>
   </g>
-  <path d="M810 380h230v50" fill="none" stroke="#87938c" stroke-width="2" stroke-dasharray="5 7"/>
+  <path d="M810 380h230v50" fill="none" stroke="#87938c" stroke-width="2"/>
   <g fill="none" stroke="#172a36" stroke-width="3" stroke-linejoin="round">
     <path d="m792 213-65 123h130l-65-123Zm0 126v110m-48 0h96"/>
     <path d="M940 348h168v108H940zM921 470h206"/>

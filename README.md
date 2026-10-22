@@ -14,6 +14,7 @@ Use Python 3.12+ and Node 22+. No package installation or build is needed.
 
 ```sh
 python3 scripts/check_site.py website
+python3 -B -m unittest discover -s website/tests -p '*_test.py'
 node --check website/site.js
 node --test website/tests/site.test.cjs
 python3 -m http.server 8765 --bind 127.0.0.1 --directory website
