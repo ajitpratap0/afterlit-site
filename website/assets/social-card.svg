@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f4f2eb"/>
+  <g fill="#172a36">
+    <text x="64" y="79" font-family="Georgia,serif" font-size="34">afterlit<tspan fill="#c5532e">.</tspan></text>
+    <text x="64" y="162" font-family="monospace" font-size="13" letter-spacing="2">LIFE AFTER THE CLOUD</text>
+    <text x="60" y="245" font-family="Georgia,serif" font-size="64">A second life for</text>
+    <text x="60" y="323" font-family="Georgia,serif" font-size="64">your smart devices.</text>
+    <text x="64" y="395" font-family="Arial,sans-serif" font-size="22">Explore. Approve. Verify. Keep it local.</text>
+    <text x="64" y="552" font-family="monospace" font-size="13" letter-spacing="1">PRE-ALPHA / OWNED BLE DEVICES / HARDWARE VALIDATION PENDING</text>
+  </g>
+  <path d="M810 380h230v50" fill="none" stroke="#87938c" stroke-width="2" stroke-dasharray="5 7"/>
+  <g fill="none" stroke="#172a36" stroke-width="3" stroke-linejoin="round">
+    <path d="m792 213-65 123h130l-65-123Zm0 126v110m-48 0h96"/>
+    <path d="M940 348h168v108H940zM921 470h206"/>
+    <path d="m969 393 14 10-14 10m31 0h33" stroke="#c5532e"/>
+  </g>
+  <path d="m743 343 49 81 49-81" fill="#e5b86d" fill-opacity=".28"/>
+  <circle cx="897" cy="380" r="6" fill="#c5532e"/>
+  <text x="950" y="311" font-family="monospace" font-size="12" letter-spacing="2" fill="#66736e">LOCAL CONNECTION</text>
+  <path d="M64 484h1060" stroke="#d7d8ce"/>
+</svg>
