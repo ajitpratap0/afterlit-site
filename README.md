@@ -1,6 +1,6 @@
 # afterlit-site
 
-The public website for **afterlit — life after the cloud**.
+The public website for **afterlit: life after the cloud**.
 
 **Visit: https://ajitpratap0.github.io/afterlit-site/**
 
