@@ -7,7 +7,7 @@ import sys
 import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 DASHES = {"\u2013": "en dash", "\u2014": "em dash", "\u2212": "minus sign"}
 CSS_QUOTED = r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')"""
@@ -206,20 +206,32 @@ def check(site: Path) -> list[str]:
         errors.append("index.html: missing html lang")
     if parser.title_count != 1 or not parser.title_text.strip():
         errors.append("index.html: expected one non-empty title")
-    for key in ("viewport", "description"):
+    for key in ("viewport", "description", "og:image:alt", "color-scheme"):
         if len(parser.meta.get(key, [])) != 1 or not parser.meta[key][0].strip():
             errors.append(f"index.html: expected one non-empty {key} meta tag")
+    if parser.meta.get("color-scheme") and parser.meta["color-scheme"] != ["light"]:
+        errors.append("index.html: color-scheme must be light")
     prefix = project_prefix(parser, errors)
+    asset_versions: set[str] = set()
 
     for html, page in pages.items():
         for attribute, raw in page.references:
             target, anchor = resolve_reference(
                 raw, site, html, prefix, f"{page.source} {attribute}", errors
             )
+            if target is not None and target.suffix.lower() in {".css", ".js"}:
+                versions = parse_qs(urlsplit(raw).query, keep_blank_values=True).get("v", [])
+                if len(versions) != 1 or not versions[0].strip():
+                    errors.append(f"{page.source}: local CSS/JS reference needs one non-empty ?v= version: {raw}")
+                else:
+                    asset_versions.add(versions[0])
             if target is not None and raw.endswith("#"):
                 errors.append(f"{page.source}: empty anchor {raw}")
             elif target in pages and anchor and anchor not in pages[target].ids:
                 errors.append(f"{page.source}: dangling anchor {raw}")
+
+    if len(asset_versions) > 1:
+        errors.append("local CSS/JS asset versions differ: " + ", ".join(sorted(asset_versions)))
 
     for css in site.rglob("*.css"):
         source = str(css.relative_to(site))

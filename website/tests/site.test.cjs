@@ -47,9 +47,11 @@ test('enables the simulation and reflects brightness at off and full', () => {
   const { nodes, classes } = workbench();
   assert.equal(nodes['#demo-controls'].disabled, false);
   assert.ok(classes.has('js-ready'));
+  assert.equal(nodes['#brightness'].getAttribute('aria-valuetext'), '75%');
 
   nodes['#brightness'].value = '0';
   nodes['#brightness'].fire('input');
+  assert.equal(nodes['#brightness'].getAttribute('aria-valuetext'), 'Off');
   assert.equal(nodes['#state-power'].textContent, 'Off');
   assert.equal(nodes['#state-level'].textContent, '0%');
   assert.equal(nodes['#brightness-value'].textContent, '0%');
@@ -57,9 +59,14 @@ test('enables the simulation and reflects brightness at off and full', () => {
 
   nodes['#brightness'].value = '100';
   nodes['#brightness'].fire('input');
+  assert.equal(nodes['#brightness'].getAttribute('aria-valuetext'), '100%');
   assert.equal(nodes['#state-power'].textContent, 'On');
   assert.equal(nodes['#state-level'].textContent, '100%');
   assert.match(nodes['#demo-lamp'].className, /\blevel-100\b/);
+
+  nodes['#brightness'].value = '25';
+  nodes['#brightness'].fire('input');
+  assert.equal(nodes['#brightness'].getAttribute('aria-valuetext'), '25%');
 });
 
 test('color selection updates readback and maintains one pressed swatch', () => {

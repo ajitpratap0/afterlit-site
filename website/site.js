@@ -13,6 +13,7 @@
   function update() {
     const level = Number(brightness.value);
     lamp.className = 'demo-lamp level-' + level + ' tone-' + tone;
+    brightness.setAttribute('aria-valuetext', level === 0 ? 'Off' : level + '%');
     value.value = level + '%';
     value.textContent = level + '%';
     power.textContent = level === 0 ? 'Off' : 'On';
