@@ -10,6 +10,10 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
 
 DASHES = {"\u2013": "en dash", "\u2014": "em dash", "\u2212": "minus sign"}
+NEVER_CLAIM = (
+    "pip install", "pypi", "brew install", "homebrew", "compatible with",
+    "works with afterlit", "supported devices", "gate 1 passed", "download now",
+)
 CSS_QUOTED = r"""(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')"""
 CSS_CONTENT = re.compile(
     r"\bcontent\s*:\s*((?:" + CSS_QUOTED + r"|[^;}])*)", re.IGNORECASE | re.DOTALL
@@ -82,11 +86,50 @@ class SiteParser(HTMLParser):
         self.meta: dict[str, list[str]] = {}
         self.canonical: list[str] = []
         self.hidden_depth = 0
+        self.visible_text: list[str] = []
+        self.meta_content: list[str] = []
+        self.csp: list[str] = []
+        self.h1_count = 0
+        self.pre_labels: set[str] = set()
+        self.idrefs: list[tuple[str, str]] = []
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         values = dict(attrs)
+        for attribute, _ in attrs:
+            if attribute == "style":
+                self.errors.append(f"{self.source}: inline style attribute is not allowed")
+            if attribute.startswith("on"):
+                self.errors.append(f"{self.source}: inline event handler is not allowed: {attribute}")
+        if tag == "style":
+            self.errors.append(f"{self.source}: inline style element is not allowed")
+        if tag == "script" and not values.get("src"):
+            self.errors.append(f"{self.source}: script needs src; inline script is not allowed")
         if tag in {"script", "style"}:
             self.hidden_depth += 1
+        if tag == "h1":
+            self.h1_count += 1
+        if tag == "pre":
+            label = (values.get("aria-label") or "").strip()
+            if values.get("tabindex") != "0" or values.get("role") != "region" or not label:
+                self.errors.append(f'{self.source}: pre needs tabindex="0", role="region" and a non-empty aria-label')
+            if label:
+                if label in self.pre_labels:
+                    self.errors.append(f"{self.source}: duplicate pre aria-label: {label}")
+                self.pre_labels.add(label)
+        for attribute in ("aria-labelledby", "aria-describedby", "aria-controls"):
+            self.idrefs.extend((attribute, token) for token in (values.get(attribute) or "").split())
+        if tag in {"label", "output"}:
+            self.idrefs.extend(("for", token) for token in (values.get("for") or "").split())
+        if tag == "a":
+            try:
+                scheme = urlsplit(values.get("href") or "").scheme
+            except ValueError:
+                scheme = ""  # Reference validation reports malformed URLs later.
+            if scheme in {"http", "https"}:
+                if scheme != "https":
+                    self.errors.append(f"{self.source}: external link must use HTTPS")
+                if not {"noopener", "noreferrer"} <= set((values.get("rel") or "").lower().split()):
+                    self.errors.append(f"{self.source}: external link needs rel noopener noreferrer")
         if tag == "html":
             self.html_lang = values.get("lang") or ""
         if tag == "title":
@@ -109,6 +152,9 @@ class SiteParser(HTMLParser):
                     dash_errors(values[attribute] or "", f"{self.source} {attribute}")
                 )
         if tag == "meta":
+            self.meta_content.append(values.get("content") or "")
+            if (values.get("http-equiv") or "").lower() == "content-security-policy":
+                self.csp.append(values.get("content") or "")
             key = values.get("name") or values.get("property")
             if key:
                 self.meta.setdefault(key.lower(), []).append(values.get("content") or "")
@@ -125,6 +171,7 @@ class SiteParser(HTMLParser):
         if self.in_title:
             self.title_text += data
         if not self.hidden_depth:
+            self.visible_text.append(data)
             self.errors.extend(dash_errors(data, f"{self.source}:{self.getpos()[0]}"))
 
 
@@ -200,8 +247,39 @@ def check(site: Path) -> list[str]:
         parser.close()
         pages[html] = parser
         errors.extend(parser.errors)
+        for attribute, token in parser.idrefs:
+            if token not in parser.ids:
+                errors.append(f"{parser.source}: dangling id reference in {attribute}: {token}")
 
     parser = pages[index]
+    if parser.h1_count != 1:
+        errors.append("index.html: expected exactly one h1")
+    if len(parser.csp) != 1:
+        errors.append("index.html: expected one Content-Security-Policy meta tag")
+    for policy in parser.csp:
+        directives: dict[str, list[str]] = {}
+        for directive in policy.split(";"):
+            parts = directive.split()
+            if not parts:
+                continue
+            name, tokens = parts[0].lower(), parts[1:]
+            if name in directives:
+                errors.append(f"index.html: duplicate CSP directive: {name}")
+            directives[name] = tokens
+            if any("unsafe-" in token.lower() for token in tokens):
+                errors.append(f"index.html: CSP {name} contains an unsafe- token")
+        for name in ("default-src", "script-src", "style-src", "connect-src", "form-action", "object-src", "base-uri"):
+            required = ["'self'"] if name in {"script-src", "style-src"} else ["'none'"]
+            if directives.get(name) != required:
+                errors.append(f"index.html: CSP {name} must be exactly {' '.join(required)}")
+    visible = " ".join("".join(parser.visible_text).lower().split())
+    for required in ("pre-alpha", "private"):
+        if required not in visible:
+            errors.append(f"index.html: visible text must contain {required}")
+    claims = visible + " " + " ".join(parser.meta_content).lower()
+    for phrase in NEVER_CLAIM:
+        if phrase in claims:
+            errors.append(f"index.html: forbidden claim: {phrase}")
     if not parser.html_lang.strip():
         errors.append("index.html: missing html lang")
     if parser.title_count != 1 or not parser.title_text.strip():
@@ -236,12 +314,22 @@ def check(site: Path) -> list[str]:
     for css in site.rglob("*.css"):
         source = str(css.relative_to(site))
         content = re.sub(r"/\*.*?\*/", "", css.read_text(encoding="utf-8"), flags=re.DOTALL)
+        for value in re.findall(r"(?<![\w-])font-size\s*:\s*([^;}]+)", content, re.IGNORECASE):
+            value = value.strip()
+            size = re.fullmatch(r"(\d+(?:\.\d+)?)px", value, re.IGNORECASE)
+            if not size:
+                size = re.match(r"clamp\(\s*(\d+(?:\.\d+)?)px\s*,", value, re.IGNORECASE)
+            if not size or float(size.group(1)) < 11:
+                errors.append(f"{source}: font-size must use px or clamp with a minimum of 11px: {value}")
         for value in CSS_CONTENT.findall(content):
             for match in CSS_STRING.finditer(value):
                 decoded = decode_css_string(match.group()[1:-1])
                 errors.extend(dash_errors(decoded, f"{source} content"))
         for raw in CSS_URL.findall(content):
             resolve_reference(raw.strip(), site, css, prefix, f"{source} url()", errors)
+
+    for js in site.rglob("*.js"):
+        errors.extend(dash_errors(js.read_text(encoding="utf-8"), f"{js.relative_to(site)} js"))
 
     for svg in site.rglob("*.svg"):
         source = str(svg.relative_to(site))

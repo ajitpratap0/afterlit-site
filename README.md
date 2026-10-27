@@ -30,8 +30,6 @@ the `gh-pages` branch changes. Pull requests run checks without deploying.
 Actions are pinned to commit SHAs. No custom domain or deployment credential
 is required. Site updates should go through pull requests.
 
-The project is pre-alpha. Real-device Gate 1 validation and automated
-registry acceptance remain outstanding. The site
-distinguishes local prototype behavior from planned features.
+The project is pre-alpha and its source is private. afterlit check, afterlit doctor and afterlit demo are available in the private source; real-device Gate 1 validation and automated registry acceptance remain outstanding. The site distinguishes local prototype behavior from planned features.
 
 Apache-2.0. See `LICENSE` and `NOTICE`.
