@@ -115,6 +115,11 @@ class SiteParser(HTMLParser):
         self.start_tag_position = 0
         self.hero_positions: dict[str, int] = {}
         self.hero_status_texts: list[list[str]] = []
+        self.hero_section_frame: list | None = None
+        self.hero_section_closed = False
+        self.section_after_hero: dict[str, str | None] | None = None
+        # Retain frames and ancestor identities to distinguish descendants from siblings.
+        self.elements: list[tuple[str, dict[str, str | None], list, tuple[int, ...]]] = []
         self.pre_labels: set[str] = set()
         self.idrefs: list[tuple[str, str]] = []
         # Open elements as [tag, collected text, previous closed sibling was a short label].
@@ -135,6 +140,8 @@ class SiteParser(HTMLParser):
         values = dict(attrs)
         self.start_tag_position += 1
         classes = set((values.get("class") or "").split())
+        if tag == "section" and self.hero_section_closed and self.section_after_hero is None:
+            self.section_after_hero = values
         if "hero" in classes:
             self.has_hero = True
         for marker in ("h1", "hero-status", "hero-actions", "hero-pitch"):
@@ -148,8 +155,13 @@ class SiteParser(HTMLParser):
                 f"short label element directly before <{tag}>"
             )
         parent[2] = False
+        ancestors = tuple(id(frame) for frame in self.stack)
         if tag not in VOID_TAGS:
             self.stack.append([tag, [], False])
+        element_frame = self.stack[-1] if tag not in VOID_TAGS else [tag, [], False]
+        self.elements.append((tag, values, element_frame, ancestors))
+        if tag == "section" and "hero" in classes and self.hero_section_frame is None:
+            self.hero_section_frame = element_frame
         if "hero-status" in classes:
             # Each frame already collects all descendant text until it is closed.
             self.hero_status_texts.append(self.stack[-1][1] if tag not in VOID_TAGS else [])
@@ -239,6 +251,8 @@ class SiteParser(HTMLParser):
         if tag not in VOID_TAGS and any(frame[0] == tag for frame in self.stack[1:]):
             while True:
                 frame = self.stack.pop()
+                if frame is self.hero_section_frame:
+                    self.hero_section_closed = True
                 if frame[0] == tag:
                     break
             self.stack[-1][2] = self.kicker_label(tag, "".join(frame[1]))
@@ -354,6 +368,33 @@ def check(site: Path) -> list[str]:
             earlier < later for earlier, later in zip(order, order[1:])
         ):
             errors.append("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions, then .hero-pitch)")
+    if parser.hero_section_frame is not None and (
+        parser.section_after_hero is None or parser.section_after_hero.get("id") != "today"
+    ):
+        errors.append('index.html: "What you can do today" (#today) must directly follow the hero')
+    readbacks = [element for element in parser.elements
+                 if "readback" in (element[1].get("class") or "").split()]
+    for _, readback_attrs, frame, _ in readbacks:
+        descendants = [element for element in parser.elements if id(frame) in element[3]]
+        live_regions = [element for element in descendants if "aria-live" in element[1]]
+        title_text = " ".join(
+            "".join(element[2][1]) for element in descendants
+            if "readback-title" in (element[1].get("class") or "").split()
+        ).lower()
+        required_ids = {"req-power", "req-level", "req-color", "state-power", "state-level", "state-color"}
+        if (
+            "aria-live" in readback_attrs
+            or len(live_regions) != 1
+            or "readback-reported" not in (live_regions[0][1].get("class") or "").split()
+            or "simulated" not in title_text
+            or not required_ids <= parser.ids
+        ):
+            errors.append("index.html: lamp readback must be labelled simulated, with one live region on the reported-back step")
+    if readbacks and not any(
+        values.get("id") == "color-off-note" and "hidden" in values
+        for _, values, _, _ in parser.elements
+    ):
+        errors.append("index.html: lamp readback requires #color-off-note with the hidden attribute")
     if len(parser.csp) != 1:
         errors.append("index.html: expected one Content-Security-Policy meta tag")
     for policy in parser.csp:

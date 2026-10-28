@@ -355,7 +355,7 @@ class SiteCheckerTests(unittest.TestCase):
     def test_valid_status_first_hero(self) -> None:
         body = ('<section class="hero"><h1>afterlit</h1>'
                 '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
-                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section>')
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section><section id="today"></section>')
         before, main = INDEX.split('<main id="top">', 1)
         _, after = main.split('</main>', 1)
         (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
@@ -363,7 +363,7 @@ class SiteCheckerTests(unittest.TestCase):
 
     def test_hero_without_status_is_rejected(self) -> None:
         body = ('<section class="hero"><h1>afterlit</h1><p>Pre-alpha. The source is private.</p>'
-                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section>')
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section><section id="today"></section>')
         before, main = INDEX.split('<main id="top">', 1)
         _, after = main.split('</main>', 1)
         (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
@@ -372,7 +372,7 @@ class SiteCheckerTests(unittest.TestCase):
     def test_hero_status_without_download_status_is_rejected(self) -> None:
         body = ('<section class="hero"><h1>afterlit</h1>'
                 '<p class="hero-status">Pre-alpha. The source is private.</p>'
-                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section>')
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section><section id="today"></section>')
         before, main = INDEX.split('<main id="top">', 1)
         _, after = main.split('</main>', 1)
         (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
@@ -381,7 +381,7 @@ class SiteCheckerTests(unittest.TestCase):
     def test_hero_status_after_actions_is_rejected(self) -> None:
         body = ('<section class="hero"><h1>afterlit</h1><div class="hero-actions"></div>'
                 '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
-                '<p class="hero-pitch">x</p></section>')
+                '<p class="hero-pitch">x</p></section><section id="today"></section>')
         before, main = INDEX.split('<main id="top">', 1)
         _, after = main.split('</main>', 1)
         (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
@@ -391,7 +391,7 @@ class SiteCheckerTests(unittest.TestCase):
         body = ('<section class="hero other"><h1>afterlit</h1>'
                 '<p class="hero-status extra"><strong>Pre-alpha.</strong> The source is private and there is '
                 '<span>no public <em>download</em></span>.</p>'
-                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section>')
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section><section id="today"></section>')
         before, main = INDEX.split('<main id="top">', 1)
         _, after = main.split('</main>', 1)
         for extra in ('', '<p class="hero-status">Duplicate outside hero.</p>'):
@@ -406,13 +406,111 @@ class SiteCheckerTests(unittest.TestCase):
     def test_hero_missing_actions_or_pitch_is_out_of_order(self) -> None:
         body = ('<section class="hero"><h1>afterlit</h1>'
                 '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
-                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section>')
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section><section id="today"></section>')
         before, main = INDEX.split('<main id="top">', 1)
         _, after = main.split('</main>', 1)
         for missing in ('<div class="hero-actions"></div>', '<p class="hero-pitch">x</p>'):
             with self.subTest(missing=missing):
                 (self.site / "index.html").write_text(before + '<main id="top">' + body.replace(missing, '') + '</main>' + after, encoding="utf-8")
                 self.assertIn("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions, then .hero-pitch)", check(self.site))
+
+    def write_main_body(self, body: str) -> None:
+        before, main = INDEX.split('<main id="top">', 1)
+        _, after = main.split('</main>', 1)
+        (self.site / "index.html").write_text(
+            before + '<main id="top">' + body + '</main>' + after, encoding="utf-8"
+        )
+
+    def test_today_must_be_first_section_after_hero_closes(self) -> None:
+        hero = ('<section class="hero"><h1>afterlit</h1>'
+                '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p>{nested}</section>')
+        message = 'index.html: "What you can do today" (#today) must directly follow the hero'
+        for nested, following, valid in (
+            ('', '<section id="today"></section>', True),
+            ('<section id="nested"><section></section></section>', '<div>Intervening prose</div><section id="today"></section>', True),
+            ('<section id="today"></section>', '<section id="other"></section>', False),
+            ('', '<section id="other"></section><section id="today"></section>', False),
+            ('', '', False),
+        ):
+            with self.subTest(nested=nested, following=following):
+                self.write_main_body(hero.format(nested=nested) + following)
+                errors = check(self.site)
+                if valid:
+                    self.assertEqual(errors, [])
+                else:
+                    self.assertIn(message, errors)
+
+    def readback_markup(self) -> str:
+        return ('<div class="readback"><div class="readback-title"><span>SIMULATED</span> state</div>'
+                '<div><span id="req-power"></span><span id="req-level"></span><span id="req-color"></span></div>'
+                '<div class="readback-reported" aria-live="polite"><span id="state-power"></span>'
+                '<span id="state-level"></span><span id="state-color"></span></div></div>'
+                '<p id="color-off-note" hidden>Color stays selected while power is off.</p>')
+
+    def test_valid_simulated_readback_with_one_reported_live_region(self) -> None:
+        self.write_index(self.readback_markup())
+        self.assertEqual(check(self.site), [])
+
+    def test_readback_sibling_title_and_live_region_do_not_satisfy_each_other(self) -> None:
+        markup = self.readback_markup()
+        title = '<div class="readback-title"><span>SIMULATED</span> state</div>'
+        self.write_index(markup.replace(title, '') + '<div class="readback">' + title + '</div>')
+        message = 'index.html: lamp readback must be labelled simulated, with one live region on the reported-back step'
+        self.assertEqual(check(self.site).count(message), 2)
+
+    def test_today_follow_rule_requires_a_hero_section(self) -> None:
+        self.write_main_body(
+            '<div class="hero"><h1>afterlit</h1>'
+            '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
+            '<div class="hero-actions"></div><p class="hero-pitch">x</p></div>'
+        )
+        self.assertEqual(check(self.site), [])
+
+    def test_readback_rejects_missing_or_misplaced_live_region(self) -> None:
+        markup = self.readback_markup()
+        message = 'index.html: lamp readback must be labelled simulated, with one live region on the reported-back step'
+        for broken in (
+            markup.replace(' aria-live="polite"', ''),
+            markup.replace('class="readback-reported"', 'class="other"'),
+            markup.replace('<div><span id="req-power">', '<div aria-live="polite"><span id="req-power">'),
+            markup.replace('class="readback"', 'class="readback" aria-live="polite"'),
+            markup.replace('class="readback"', 'class="readback" aria-live="polite"').replace(' aria-live="polite"><span id="state-power">', '><span id="state-power">'),
+            markup.replace(' aria-live="polite"', '') + '<div class="readback-reported" aria-live="polite"></div>',
+        ):
+            with self.subTest(broken=broken):
+                self.write_index(broken)
+                self.assertIn(message, check(self.site))
+
+    def test_readback_requires_simulated_descendant_title_and_all_state_ids(self) -> None:
+        markup = self.readback_markup()
+        message = 'index.html: lamp readback must be labelled simulated, with one live region on the reported-back step'
+        broken_cases = [
+            markup.replace('SIMULATED', 'Preview'),
+            markup.replace('<div class="readback-title"><span>SIMULATED</span> state</div>', '') + '<div class="readback-title">SIMULATED</div>',
+        ]
+        broken_cases.extend(markup.replace('id="' + marker + '"', '') for marker in (
+            'req-power', 'req-level', 'req-color', 'state-power', 'state-level', 'state-color'
+        ))
+        for broken in broken_cases:
+            with self.subTest(broken=broken):
+                self.write_index(broken)
+                self.assertIn(message, check(self.site))
+
+    def test_readback_requires_hidden_color_off_note(self) -> None:
+        markup = self.readback_markup()
+        for broken in (
+            markup.replace(' hidden', ''),
+            markup.replace('id="color-off-note"', 'id="other-note"'),
+        ):
+            with self.subTest(broken=broken):
+                self.write_index(broken)
+                self.assertIn('index.html: lamp readback requires #color-off-note with the hidden attribute', check(self.site))
+
+    def test_new_structure_rules_apply_only_to_index(self) -> None:
+        extra = '<section class="hero"></section><div class="readback"></div>'
+        (self.site / "404.html").write_text(NOT_FOUND.replace('</body>', extra + '</body>'), encoding="utf-8")
+        self.assertEqual(check(self.site), [])
 
 if __name__ == "__main__":
     unittest.main()

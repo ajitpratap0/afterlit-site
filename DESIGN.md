@@ -45,10 +45,10 @@ colors:
 typography:
   display:
     fontFamily: "Georgia, \"Times New Roman\", serif"
-    fontSize: "clamp(48px,13cqi,96px)"
+    fontSize: "clamp(36px,8cqi,72px)"
     fontWeight: 400
-    lineHeight: 1
-    letterSpacing: "-0.035em"
+    lineHeight: 1.05
+    letterSpacing: "-0.03em"
   thesis:
     fontFamily: "Georgia, \"Times New Roman\", serif"
     fontSize: "clamp(40px, 3.6vw + 8px, 64px)"
@@ -181,7 +181,7 @@ components:
 
 # Design System: afterlit
 
-> This file records the system as it stands after the Impeccable design pass on branch feat/impeccable-design-pass. Token names match the custom properties in the :root block of website/styles.css. Font sizes are written as literal px or clamp() in each rule, because scripts/check_site.py rejects font-size:var(). The north star name is unconfirmed by the owner.
+> This file records the system as it stands after the critique fixes on branch feat/critique-fixes. Token names match the custom properties in the :root block of website/styles.css. Font sizes are written as literal px or clamp() in each rule, because scripts/check_site.py rejects font-size:var(). The north star name is unconfirmed by the owner.
 
 ## Overview
 
@@ -213,16 +213,18 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 
 ### Primary
 - **Workbench Rust** (--rust #b64727) is used for:
-  - the primary button and the wordmark full stop
-  - the italic hero phrase and the step ordinals
-  - the focus ring, chevrons and diagram wires
+  - the primary button (and its hover)
+  - annotations: the wordmark full stop, the hero diagram wire, nodes, cloud strike and "BLE / LOCAL" label, and the no-JS note
+  - the focus ring
+
+  Links, chevrons, step ordinals, slider controls and hero-note separators are ink or --text-soft, never rust.
 
   It is 4.78:1 on paper.
 - **Rust Hover** (--rust-hover #a74022): the primary button's hover state only.
 - **Rust Text** (--rust-text #9d3b20): rust text on tinted grounds, such as the "BLE / LOCAL" diagram label and the no-JS note.
 
 ### Status (state only, always paired with a text label)
-- **Ready:** dot --status-ready #4b7a52; tag text --status-ready-text #3f6b47 (5.51:1). It is also used for the header badge dot and the readback confirmation dot.
+- **Ready:** dot --status-ready #4b7a52; tag text --status-ready-text #3f6b47 (5.51:1). It is also used for the header badge dot, the readback confirmation dot and the readback pencil stroke.
 - **Pending:** dot --status-pending #a8592b; tag text --status-pending-text #9a4a1c (5.56:1).
 - **Not yet / Not implemented:** dot --status-future #6f7c75; tag text --text-soft.
 
@@ -263,17 +265,17 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 **Character:** a bookish serif for statements, a neutral sans for explanation, and a technical monospace for anything that is code or an instrument reading. All three are system faces: the page downloads no font files, by policy (the CSP has no font-src).
 
 ### Hierarchy
-- **Display** (h1, 400, line-height 1, -.035em):
-  - Sized to its column: clamp(48px,13cqi,96px) with a clamp(48px,5.8vw,96px) fallback, and clamp(48px,8cqi,58px) at 950px and below, so the size at 768px stays below the two-column size at 1024px.
-  - The size grows steadily with width and never exceeds 96px (measured: 48px at 320 and 600, about 55 at 768, 59 at 1024, 84 at 1440, 88 at 1920).
-  - The second line is an italic rust `em`.
-  - The authored `<br>` holds at two-column widths; text-wrap:balance applies only at 620px and below, where the `<br>` is hidden.
+- **Display** (h1, 400, line-height 1.05, -.03em):
+  - A status sentence sized to its column: clamp(36px,8cqi,72px), with a clamp(36px,5vw,72px) fallback. It has a 15em maximum width, manual hyphenation and balanced wrapping, with no authored line break.
+  - At 620px and below the h1 is clamp(28px,9cqi,34px), line-height 1.08, -.02em.
+  - Computed sizes and line counts at target viewports remain pending browser verification; the base rule ranges from 36 to 72px and the phone rule from 28 to 34px.
+- **Hero pitch** (.hero-pitch, 16px Arial 700, 1.5, ink): one plain line after the actions that leads into the lede. Not italic, not display, not rust.
 - **Thesis** (the problem h2, 400, clamp(40px, 3.6vw + 8px, 64px), 1.04, -.035em): the one typographic peak after the hero.
 - **Headline** (h2, 400, clamp(34px,3.5vw,58px), 1.08, -.03em, balanced).
 - **Title** (h3, 400, clamp(25px,2vw,32px), -.02em, balanced). The workbench h3 is clamp(28px,2.4vw,36px), always below its h2.
 - **Lede** (18px, 1.65, max-width 30em).
 - **Body** (16px, 1.7, max-width 31em, about 70 characters): section copy and FAQ answers (FAQ answers use line-height 1.65).
-- **Body small** (14px, 1.55): outcome and output captions, step text (max 34em), terminal captions, the hardware note.
+- **Body small** (14px, 1.55): outcome and output captions, step text (max 34em), terminal captions.
 - **FAQ summary** (18px, 1.35, bold, 44px target).
 - **UI** (bold; nav 14px at 621px and above, 13px on phones; buttons 15px).
 - **Wordmark** (26px Arial 800, -.04em; 32px in the footer).
@@ -289,34 +291,33 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 
 **The Instrument Voice Rule.** Monospace is for commands, output, readings and uppercase labels, never for decorative sentences.
 
-**The No Kicker Rule.** No tracked label ever sits above a heading. When a label carried meaning, it was folded into the heading itself (for example "For contributors: how afterlit frees a new device"). The step ordinals sit inline in each step heading, in the heading's own face ("01 Capture: observe first."), so a step has one heading. scripts/check_site.py enforces this two ways: it rejects the eyebrow and kicker classes, and it rejects a short label element (span, small, strong, b, em, i, code or mark up to 40 characters, or an all-caps p or div) that is the immediate previous sibling of an h1 to h4. This is a heuristic, not a full guard: a label made uppercase only by CSS inside a p or div, or a label separated from its heading by a wrapper, still passes, so review new headings by eye.
+**The No Kicker Rule.** No tracked label ever sits above a heading. When a label carried meaning, it was folded into the heading itself (for example "For contributors: investigating a new device"). The step ordinals sit inline in each step heading, in the heading's own face ("01 Capture: observe first."), so a step has one heading. scripts/check_site.py enforces this two ways: it rejects the eyebrow and kicker classes, and it rejects a short label element (span, small, strong, b, em, i, code or mark up to 40 characters, or an all-caps p or div) that is the immediate previous sibling of an h1 to h4. This is a heuristic, not a full guard: a label made uppercase only by CSS inside a p or div, or a label separated from its heading by a wrapper, still passes, so review new headings by eye.
 
 ## Layout
 
 - **Shell:** max 1560px wide; side gutter clamp(24px,5.5vw,96px), 22px at 620px and below.
 - **Section rhythm:** sections are separated by a 1px --rule-soft line with padding var(--section-pad), clamp(64px, 6vw + 40px, 128px). The thesis band breathes more (clamp(96px,10vw,160px)) and splits 7/5 at 951px and above, with the statement on the left and its supporting sentence aligned to the baseline on the right.
 - **Spacing scale:** 4, 8, 12, 16, 24, 32, 48, 64, 96, 128 (--s-1 to --s-10).
-- **Content sections:** check and doctor use a two-column split (.9fr / 1.1fr): heading and explanation on the left, the terminal on the right. The practice run, lamp preview, status and today sections use a heading row above their content; the FAQ is a single column at measure. In check and doctor, the terminal is position:sticky (top 24px) at 951px and above, so the proof stays beside the text it illustrates.
+- **Content sections:** check and doctor use a two-column split (.9fr / 1.1fr): heading and explanation on the left, the terminal on the right. The today, practice run, lamp preview, contributors and status sections use a heading row above their content; the FAQ is a single column at measure. In check and doctor, the terminal is position:sticky (top 24px) at 951px and above, so the proof stays beside the text it illustrates.
 - **Hero:** splits 1.05fr / .95fr, with the diagram on the right.
-- **Steps:** a 4-column ruled strip. Each h3 starts with its rust ordinal (01 to 04) and names the stage, then the plain action; step headings do not auto-hyphenate.
-- **Status board:** a ruled grid of status rows, three columns at 951px and above, two from 761px, one below. Each row is a dot, a name with its state tag under it, and the description.
+- **Steps:** a 4-column ruled strip. Each h3 starts with its ordinal in --text-soft (01 to 04) and names the stage, then the plain action; step headings do not auto-hyphenate.
+- **Status board:** a ruled grid of status rows, three columns at 951px and above, two from 761px, one below. Each row is a dot, a name with its state tag under it, and the description. There is no bottom border and no bottom padding on the status section: the FAQ's section rule closes the board.
 - **Page order:**
-  1. hero (status first: h1 says what afterlit is being built to do, then the pre-alpha status line, then what to do meanwhile, then the pitch)
-  2. thesis
-  3. device check
-  4. doctor (radio scan and system requirements behind a disclosure)
-  5. practice run (afterlit demo, command line)
-  6. lamp preview (browser only)
-  7. contributors (with "What a run produces")
-  8. status
-  9. what you can do today
-  10. FAQ
+  1. hero (status first: h1, the pre-alpha status line, then two actions: the device check and what to do if your app stopped working, then the pitch)
+  2. what you can do today
+  3. thesis
+  4. device check
+  5. doctor (radio scan and system requirements behind a disclosure)
+  6. practice run (afterlit demo, command line)
+  7. lamp preview (browser only)
+  8. contributors (with "What a run produces")
+  9. status
+  10. FAQ, ending with a "Back to top" link
 - **Breakpoints:**
   - 951 to 1439px: hero SVG labels upsized to 17 viewBox units so they never render below 11px.
   - 950px: splits stack, steps become 2 columns, the workbench stacks; hero SVG labels use 13 units.
   - 900px: the nav takes its own row with a 16px gap, so no link wraps inside the header row.
-  - 620px: steps become 1 column; status rows stack.
-  - 520px: the nav becomes a two-column grid.
+  - 620px: steps become 1 column; status rows stack; the nav becomes one sideways-scrolling row that bleeds to the screen edges; the cut-off next label and a 24px right-edge fade show there is more; focused links scroll fully into view; the h1 drops to clamp(28px,9cqi,34px) at line-height 1.08; the readback uses 1fr 1fr 2fr columns so "Warm white" stays on one line.
 - **Must hold:**
   - No horizontal overflow at 320px, including under translation expansion and the WCAG 1.4.12 text-spacing override. Grid children set min-width:0, text sets overflow-wrap:break-word, and headings use hyphens:auto.
   - Terminal lines wrap instead of scrolling.
@@ -344,10 +345,10 @@ Flat by design: there are no box-shadows. Depth comes from tonal grounds (paper,
 There is one authored moment: the control-and-readback loop of the browser lamp.
 
 - **Lamp:** --light (registered <color>) and --glow (registered <number>) cross-fade over .32s with cubic-bezier(.16,1,.3,1), so a colour change passes through real intermediate tints.
-- **Readback:** the text updates in the same frame as the control. Delays are never faked. The readback status dot plays a single .6s scale-and-fade confirmation, triggered only by user input, never on page load.
-- **Micro feedback:** the FAQ and developer-notes chevrons rotate in .18s; the primary button background and link underline colour ease over .15s.
-- **Forbidden:** entrance animations, scroll-driven effects, parallax and staged loading.
-- **Reduced motion:** prefers-reduced-motion makes every change instant and removes the pulse.
+- **Readback:** two steps, "01 Requested by this page" and "02 Reported back by the simulated lamp", under "SIMULATED IN THIS BROWSER". Both update in the same frame as the control. Delays and approvals are never faked. Only step 02 is a live region. Two marks confirm a change, both triggered only by user input, never on page load: the step 02 status dot plays a single .6s scale-and-fade, and a 2px --status-ready pencil stroke draws left to right under each value that changed (.5s, cubic-bezier(.16,1,.3,1)) and stays until the next change. Requested and reported strokes draw together, never staggered. A change that rewrites no value leaves the strokes in place.
+- **Micro feedback:** the FAQ and developer-notes chevrons rotate in .18s; the primary button background eases over .15s; link hover thickens the underline to 2px without transition; the selected swatch's ink ring opens to its 4px offset in .18s and the previous one closes in .1s.
+- **Forbidden:** entrance animations (including any load-time motion in the hero diagram), scroll-driven effects, parallax and staged loading.
+- **Reduced motion:** prefers-reduced-motion makes every change instant and removes the pulse; the pencil stroke still appears, instantly, so the record of what changed is kept.
 - **Fallback:** browsers without @property get an instant change.
 
 ## Components
@@ -359,19 +360,20 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 - **Focus:** a 3px solid rust outline with a 4px offset.
 - **One primary per view.** The hero primary reads "See how the device check works".
 
-### Hero note and hardware note
-- **Hero note:** body sans, 13px bold ink, sentence case. From 621px the three trust facts run inline with small rust middots; each fact is nowrap and each middot is glued to the fact before it with a no-break space, so no wrapped line starts with "·". Below 621px the middots hide and the facts stack one per line. Bold ink sets the facts apart from the muted hardware note below.
+### Hero status and hero note
+- **Hero note:** body sans, 13px bold ink, sentence case. From 621px the three trust facts run inline with small --text-soft middots; each fact is nowrap and each middot is glued to the fact before it with a no-break space, so no wrapped line starts with "·". Below 621px the middots hide and the facts stack one per line.
 - **Hero status:** 18px ink with a 3px pending-colour left rule and a bold "Pre-alpha." lead. It is the hero's honesty line and sits directly under the h1, above the actions and the pitch: private source, no public download, real-device testing pending. scripts/check_site.py requires exactly one .hero-status.
 
 ### Status badge
 - A 1px sage-line border, sage text, an 11px uppercase mono label, padding 8px 11px, and a 6px --status-ready dot. It is used once, in the header ("Pre-alpha").
 
-### Ruled lists (outcomes, run outputs, confidence, status, FAQ)
-- A 1px rule between rows and a 22 to 24px vertical rhythm. There are no index numbers; numbers belong only to the ordered steps.
+### Ruled lists (outcomes, run outputs, confidence, today, status, FAQ)
+- A 1px rule between rows and a 22 to 24px vertical rhythm. Ordinals belong to ordered steps and the today list.
 - **Rows:** a bold title, then a 14px muted caption at measure.
-- **Confidence list:** a dl with mono dt ("is", "is likely", "may be ... (unconfirmed match)") and body dd. It stacks on phones.
+- **Confidence list:** a dl with mono dt and body dd, used for match confidence and the doctor report states (OK, Check, Problem, Skipped and Not applicable). It stacks on phones.
+- **Today list:** three ordered steps with inline ordinals, 18px bold titles and 16px explanations; three columns at 951px and above.
 - **Status rows:** a coloured dot, the name, its semantic state tag under the name (at 951px and above), and the description.
-- **FAQ:** native details/summary with a rust CSS chevron, an 18px summary with a 44px target, and 16px answers. Answers expand in print (Chromium).
+- **FAQ:** native details/summary with an ink CSS chevron, an 18px summary with a 44px target, and 16px answers. Answers expand in print (Chromium).
 
 ### Terminal panel
 - An ink background and a mono header row above a 1px terminal rule.
@@ -382,24 +384,24 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 - Developer-only detail goes into a "Notes for developers" details element, styled for the dark ground (terminal-note text, a prompt-coloured chevron and focus ring).
 
 ### Workbench (signature component)
-- **Bench visual** (--bench): a CSS-drawn lamp (shade clip-path, stem, base, and a blurred glow driven by --light and --glow through .level-* and .tone-*). Labels: "SIMULATED DEVICE / LAMP 01" and "● BROWSER ONLY".
+- **Bench visual** (--bench): a CSS-drawn lamp (shade clip-path, stem, base, and a blurred glow driven by --light and --glow through .level-* and .tone-*). Labels: "LAMP PREVIEW" and "● BROWSER ONLY".
 - **Controls** (--paper-raised):
-  - an h3 "Control the simulation." (no label above it);
-  - a 44px range input in accent rust;
+  - an h3 "Set the lamp." (no label above it);
+  - a 44px range input in accent ink;
   - 44px round swatches using aria-pressed;
-  - a readback panel (role status, aria-live polite, tabular numerals) whose text is only rewritten when it changes.
+  - a readback panel with a Requested step and a Reported back step (step 02 has role status, aria-live polite, tabular numerals), text only rewritten when it changes. At 0% brightness the swatches are disabled, a note explains why, and both steps report Color "None".
 - **Without JS:** the fieldset stays disabled until site.js runs, and a note explains why.
 - **Forced colours:** the bench visual keeps its authored colours; swatches keep their hue with a Highlight ring.
 - The pane always states that it is a browser-only simulation that produces no evidence.
 
 ### Navigation
-- **Header row:** the wordmark (26px bold, -.04em, rust glyph and full stop), five in-page links in page order (Device check, Lamp preview, For contributors, Status, FAQ; 44px targets). The contributor link is a label, not an invitation: there is no public repository to contribute to, and scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started, and the status badge.
-- **Narrow screens:** at 900px and below the nav takes its own row; at 520px and below it is a two-column grid.
+- **Header row:** the wordmark (26px bold, -.04em, ink glyph, rust full stop), five in-page links in page order (What to do now, Device check, Lamp preview, Status, FAQ; 44px targets), and the status badge. There is no contributor link: the contributor section is reached in page order. scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started.
+- **Narrow screens:** at 900px and below the nav takes its own row; at 620px and below that row scrolls sideways (one row, 44px targets, inset focus ring, edge fade, no hidden scrollbar on desktop). A "Back to top" link follows the FAQ and returns to the page top, nav included.
 - A skip link appears on focus.
 
 ### Hero diagram
 - A sunk-paper panel with a faint grid: a computer, a lamp with halos, a rust wire and a crossed-out cloud. Mono annotations are 11 viewBox units (.05em tracking), upsized to 17 between 951 and 1439px, 13 between 621 and 950px and 24 on phones, so they never render below 11px. These sizes are SVG user units, recorded as diagram-label and diagram-label-phone. "BLE / LOCAL" starts at x=254, 14 units clear of the wire's vertical run, and is hidden on phones. On phones the enlarged labels are nudged by CSS transforms (the cloud label 14,14 units clear of the strike line, the two base labels 10 units below the drawings).
-- The footer captions read "Observe / Verify / Keep evidence".
+- The caption row sits below the SVG with a top rule, without overlapping the drawing. Its captions read "Observe / Verify / Keep evidence" in --sage-text. Base labels use --sage-text with a 4px sunk-paper stroke halo and paint-order:stroke so grid lines do not reduce their contrast.
 - role="img" with a full aria-label. It keeps its colours in forced colours.
 
 ### 404 page

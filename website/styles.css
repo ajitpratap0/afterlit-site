@@ -96,11 +96,10 @@ body {
 a {
   color:inherit;
   text-underline-offset:.2em;
-  text-decoration-thickness:1px;
-  transition:text-decoration-color .15s ease-out
+  text-decoration-thickness:1px
 }
 a:hover {
-  text-decoration-color:var(--rust)
+  text-decoration-thickness:2px
 }
 button,input {
   font:inherit
@@ -154,8 +153,7 @@ h1,h2,h3,p,li,dd,dt,summary,small,.button,.site-header nav a {
 }
 .brand svg {
   width:32px;
-  height:32px;
-  color:var(--rust)
+  height:32px
 }
 .accent,.footer-brand strong span {
   color:var(--rust)
@@ -262,26 +260,17 @@ h3 {
   font-weight:700;
   color:var(--status-pending-text)
 }
-.hero-next {
-  max-width:var(--measure);
-  margin:0 0 var(--s-4);
-  font-size:15px;
-  line-height:1.55;
-  color:var(--text-lede)
-}
+
 .hero-pitch {
-  margin:0 0 var(--s-3);
-  font-family:var(--font-display);
-  font-size:clamp(22px,2vw,28px);
-  line-height:1.1;
-  letter-spacing:-.02em;
+  margin:0 0 var(--s-2);
+  font-family:var(--font-body);
+  font-size:16px;
+  font-weight:700;
+  line-height:1.5;
   color:var(--ink);
   text-wrap:balance
 }
-.hero-pitch em {
-  font-weight:400;
-  color:var(--rust)
-}
+
 .hero .lede {
   margin:0 0 var(--s-5)
 }
@@ -328,7 +317,7 @@ h3 {
 }
 .hero-note span[aria-hidden] {
   margin-right:.45em;
-  color:var(--rust)
+  color:var(--text-soft)
 }
 
 .hero-art {
@@ -580,7 +569,7 @@ h3 {
 }
 /* The ordinal is part of the step heading, set in the heading's own face */
 .number {
-  color:var(--rust);
+  color:var(--text-soft);
   margin-right:.15em
 }
 .steps h3 {
@@ -790,7 +779,7 @@ h3 {
 }
 .control-heading output {
   font-family:var(--font-mono);
-  color:var(--rust);
+  color:var(--ink);
   font-variant-numeric:tabular-nums
 }
 .bench-controls input[type=range] {
@@ -798,7 +787,7 @@ h3 {
   width:100%;
   height:var(--tap);
   margin:5px 0 0;
-  accent-color:var(--rust);
+  accent-color:var(--ink);
   cursor:pointer
 }
 .range-ends {
@@ -824,16 +813,30 @@ h3 {
   width:var(--tap);
   border:1px solid var(--swatch-line);
   border-radius:50%;
-  cursor:pointer
+  cursor:pointer;
+  outline:2px solid transparent;
+  outline-offset:0;
+  transition:outline-offset .1s ease-out,outline-color .1s ease-out
 }
 .swatch[aria-pressed=true] {
   border:2px solid var(--ink);
   outline:2px solid var(--ink);
-  outline-offset:4px
+  outline-offset:4px;
+  transition-duration:.18s;
+  transition-timing-function:cubic-bezier(.16,1,.3,1)
+}
+.js-ready .swatch:disabled {
+  opacity:.35;
+  cursor:not-allowed
+}
+.js-ready .swatch:disabled[aria-pressed=true] {
+  border-color:var(--swatch-line);
+  outline-color:var(--swatch-line)
 }
 .swatch:focus-visible {
   outline:var(--focus-ring);
-  outline-offset:5px
+  outline-offset:5px;
+  transition:none
 }
 .swatch-warm {
   background:var(--tone-warm)
@@ -846,6 +849,19 @@ h3 {
 }
 .swatch-blue {
   background:var(--tone-blue)
+}
+.js-ready .color-off-note {
+  visibility:hidden
+}
+.js-ready .color-off-note.is-shown {
+  visibility:visible
+}
+.color-control .color-off-note {
+  font-size:12px;
+  font-weight:400;
+  line-height:1.55;
+  color:var(--text-muted);
+  margin:var(--s-3) 0 0
 }
 .no-js-note {
   font-size:12px;
@@ -861,20 +877,44 @@ h3 {
   padding:18px 21px
 }
 .readback-title {
-  display:flex;
-  justify-content:space-between;
-  font-size:11px;
+  margin:0;
+  font-size:12px;
   color:var(--sage-text-soft);
   font-weight:700
 }
-.readback-title span:last-child {
+.readback-step {
+  margin-top:var(--s-4)
+}
+.readback-step+.readback-step {
+  border-top:1px solid var(--sage-line);
+  padding-top:var(--s-4)
+}
+.readback-label {
+  margin:0;
+  display:flex;
+  align-items:baseline;
+  gap:var(--s-2);
+  font-size:12px;
+  font-weight:700;
+  color:var(--sage-text)
+}
+.readback-num {
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--sage-text-soft);
+  font-variant-numeric:tabular-nums
+}
+.readback-dot {
+  margin-left:auto;
   display:inline-block;
   font-size:14px;
+  line-height:1;
   color:var(--status-ready)
 }
-.readback.is-confirmed .readback-title span:last-child {
+.readback.is-confirmed .readback-dot {
   animation:readback-confirm .6s cubic-bezier(.16,1,.3,1)
 }
+
 @keyframes readback-confirm {
   from {
     opacity:.2;
@@ -888,7 +928,7 @@ h3 {
 .readback dl {
   display:flex;
   gap:15px;
-  margin:22px 0 0
+  margin:var(--s-2) 0 0
 }
 .readback dl div {
   flex:1;
@@ -898,11 +938,44 @@ h3 {
   font-size:12px;
   color:var(--sage-text-soft)
 }
+.readback dl div:last-child {
+  flex:1.6
+}
 .readback dd {
+  position:relative;
+  width:fit-content;
+  max-width:100%;
   margin:7px 0 0;
   font-weight:700;
   font-size:14px;
   font-variant-numeric:tabular-nums
+}
+.readback .readback-requested dd {
+  font-weight:400;
+  color:var(--text-muted)
+}
+/* Pencil stroke under each value the last control change rewrote. The text is already
+   written; the stroke is drawn, not faded, and stays as the record of the latest change. */
+.readback dd:after {
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:-5px;
+  height:2px;
+  background:var(--status-ready);
+  transform:scaleX(0);
+  transform-origin:left center;
+  pointer-events:none
+}
+.readback dd.is-fresh:after {
+  transform:none;
+  animation:readback-stroke .5s cubic-bezier(.16,1,.3,1)
+}
+@keyframes readback-stroke {
+  from {
+    transform:scaleX(0)
+  }
 }
 .evidence-note {
   font-size:12px;
@@ -915,8 +988,10 @@ h3 {
 .status-table {
   display:grid;
   grid-template-columns:minmax(0,1fr);
-  column-gap:var(--s-6);
-  border-bottom:1px solid var(--rule)
+  column-gap:var(--s-6)
+}
+.status-section {
+  padding-bottom:0
 }
 .status-row {
   display:grid;
@@ -1117,8 +1192,8 @@ h3 {
   width:7px;
   height:7px;
   flex-shrink:0;
-  border-right:2px solid var(--rust);
-  border-bottom:2px solid var(--rust);
+  border-right:2px solid var(--ink);
+  border-bottom:2px solid var(--ink);
   transform:rotate(45deg);
   margin-right:3px;
   transition:transform .18s cubic-bezier(.16,1,.3,1)
@@ -1171,8 +1246,8 @@ h3 {
   width:8px;
   height:8px;
   flex-shrink:0;
-  border-right:2px solid var(--rust);
-  border-bottom:2px solid var(--rust);
+  border-right:2px solid var(--ink);
+  border-bottom:2px solid var(--ink);
   transform:rotate(45deg);
   margin-right:3px;
   transition:transform .18s cubic-bezier(.16,1,.3,1)
@@ -1186,6 +1261,18 @@ h3 {
   line-height:1.65;
   font-size:16px;
   margin:16px 0 0
+}
+
+/* Back to top: after the last question, before the footer */
+.back-to-top {
+  margin:var(--s-6) 0 0
+}
+.back-to-top a {
+  display:inline-flex;
+  align-items:center;
+  min-height:var(--tap);
+  font-size:14px;
+  font-weight:700
 }
 
 /* Footer */
@@ -1294,6 +1381,9 @@ h3 {
   }
   .steps {
     grid-template-columns:repeat(2,1fr)
+  }
+  .steps article:nth-child(odd) {
+    padding-left:0
   }
   .steps>.method-note {
     grid-column:1/-1;
@@ -1430,11 +1520,51 @@ h3 {
     display:block
   }
 }
-@media(max-width:520px) {
+/* Phone nav: one row that scrolls sideways. The row bleeds to the screen
+   edges so the next label is visibly cut off, and the right edge fades. */
+@media(max-width:620px) {
+  .site-header {
+    padding:var(--s-3) 0 0;
+    gap:var(--s-2) var(--s-4)
+  }
   .site-header nav {
+    flex-wrap:nowrap;
+    width:calc(100% + 44px);
+    gap:0;
+    margin:0 -22px;
+    padding:0 40px 0 14px;
+    overflow-x:auto;
+    overscroll-behavior-x:contain;
+    scroll-padding-inline:14px 40px;
+    scrollbar-width:thin;
+    scrollbar-color:var(--rule) transparent;
+    -webkit-mask-image:linear-gradient(to right,var(--ink) calc(100% - 24px),transparent);
+    mask-image:linear-gradient(to right,var(--ink) calc(100% - 24px),transparent)
+  }
+  .site-header nav a {
+    flex:none;
+    padding:0 var(--s-2);
+    white-space:nowrap
+  }
+  .site-header nav a:focus-visible {
+    outline-offset:-3px
+  }
+  .hero {
+    padding-top:var(--s-6)
+  }
+  h1 {
+    font-size:clamp(28px,9cqi,34px);
+    line-height:1.08;
+    letter-spacing:-.02em;
+    margin-bottom:var(--s-4)
+  }
+  .readback {
+    padding:var(--s-4)
+  }
+  .readback dl {
     display:grid;
-    grid-template-columns:1fr 1fr;
-    column-gap:var(--s-4)
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);
+    gap:var(--s-3)
   }
 }
 
@@ -1450,8 +1580,14 @@ h3 {
   .demo-lamp {
     transition:none
   }
-  .readback.is-confirmed .readback-title span:last-child {
+  .readback.is-confirmed .readback-dot {
     animation:none
+  }
+  .readback dd.is-fresh:after {
+    animation:none
+  }
+  .swatch {
+    transition:none
   }
 }
 
@@ -1467,6 +1603,14 @@ h3 {
   .swatch[aria-pressed=true] {
     border-color:Highlight;
     outline-color:Highlight
+  }
+  .js-ready .swatch:disabled,.js-ready .swatch:disabled[aria-pressed=true] {
+    border-color:GrayText;
+    outline-color:GrayText
+  }
+  .readback dd:after {
+    forced-color-adjust:none;
+    background:CanvasText
   }
 }
 
@@ -1513,4 +1657,22 @@ h3 {
     content-visibility:visible;
     display:block
   }
+}
+
+/* Section ends: the next section's rule is the divider, so lists drop their last bottom rule */
+.today-list li:last-child,.run-outputs .artifact-list li:last-child {
+  border-bottom:0
+}
+@media(min-width:621px) and (max-width:950px) {
+  .run-outputs .artifact-list li:nth-last-child(2) {
+    border-bottom:0
+  }
+}
+@media(min-width:951px) {
+  .run-outputs .artifact-list li {
+    border-bottom:0
+  }
+}
+.method-note .number {
+  margin-right:0
 }
