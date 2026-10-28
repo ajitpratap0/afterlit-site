@@ -20,6 +20,27 @@ CSS_CONTENT = re.compile(
 )
 CSS_STRING = re.compile(CSS_QUOTED)
 CSS_URL = re.compile(r"""url\(\s*['"]?([^'")]+)""", re.IGNORECASE)
+KICKER_CLASSES = {"eyebrow", "kicker"}
+# A short label element directly before a heading sibling is a kicker whatever its class.
+# Inline label tags are flagged at any case; p and div only when their text is all caps.
+KICKER_INLINE_TAGS = {"span", "small", "strong", "b", "em", "i", "code", "mark"}
+KICKER_BLOCK_TAGS = {"p", "div"}
+KICKER_MAX_CHARS = 40
+HEADING_TAGS = {"h1", "h2", "h3", "h4"}
+VOID_TAGS = {
+    "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta",
+    "source", "track", "wbr",
+}
+# Nav labels that invite an action the pre-alpha, private-source project cannot offer yet.
+NAV_FORBIDDEN_LABELS = {
+    "contribute", "download", "install", "get started", "sign up", "join", "buy",
+}
+TRACKING_FLOOR_EM = -0.04
+CSS_LETTER_SPACING = re.compile(r"(?<![\w-])letter-spacing\s*:\s*(-?\d*\.?\d+)(em|px)?", re.IGNORECASE)
+CSS_LIGHT_INITIAL = re.compile(
+    r"@property\s+--light\s*\{[^}]*?initial-value\s*:\s*([^;}]+)", re.IGNORECASE | re.DOTALL
+)
+CSS_TONE_WARM = re.compile(r"--tone-warm\s*:\s*([^;}]+)", re.IGNORECASE)
 
 
 def dash_errors(text: str, source: str) -> list[str]:
@@ -92,9 +113,35 @@ class SiteParser(HTMLParser):
         self.h1_count = 0
         self.pre_labels: set[str] = set()
         self.idrefs: list[tuple[str, str]] = []
+        # Open elements as [tag, collected text, previous closed sibling was a short label].
+        self.stack: list[list] = [["#root", [], False]]
+        self.nav_depth = 0
+        self.nav_link_text: list[str] | None = None
+
+    def kicker_label(self, tag: str, text: str) -> bool:
+        """Return True when a closed element reads as a short label, not prose."""
+        text = " ".join(text.split())
+        if not text or len(text) > KICKER_MAX_CHARS:
+            return False
+        if tag in KICKER_INLINE_TAGS:
+            return True
+        return tag in KICKER_BLOCK_TAGS and any(c.isalpha() for c in text) and text == text.upper()
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         values = dict(attrs)
+        parent = self.stack[-1]
+        if tag in HEADING_TAGS and parent[2]:
+            self.errors.append(
+                f"{self.source}:{self.getpos()[0]}: kicker or eyebrow label above a heading is not allowed: "
+                f"short label element directly before <{tag}>"
+            )
+        parent[2] = False
+        if tag not in VOID_TAGS:
+            self.stack.append([tag, [], False])
+        if tag == "nav":
+            self.nav_depth += 1
+        if tag == "a" and self.nav_depth:
+            self.nav_link_text = []
         for attribute, _ in attrs:
             if attribute == "style":
                 self.errors.append(f"{self.source}: inline style attribute is not allowed")
@@ -102,6 +149,11 @@ class SiteParser(HTMLParser):
                 self.errors.append(f"{self.source}: inline event handler is not allowed: {attribute}")
         if tag == "style":
             self.errors.append(f"{self.source}: inline style element is not allowed")
+        kickers = KICKER_CLASSES & set((values.get("class") or "").lower().split())
+        if kickers:
+            self.errors.append(
+                f"{self.source}: kicker or eyebrow label above a heading is not allowed: {', '.join(sorted(kickers))}"
+            )
         if tag == "script" and not values.get("src"):
             self.errors.append(f"{self.source}: script needs src; inline script is not allowed")
         if tag in {"script", "style"}:
@@ -162,12 +214,31 @@ class SiteParser(HTMLParser):
             self.canonical.append(values.get("href") or "")
 
     def handle_endtag(self, tag: str) -> None:
+        if tag == "a" and self.nav_link_text is not None:
+            label = " ".join("".join(self.nav_link_text).lower().split())
+            if label in NAV_FORBIDDEN_LABELS:
+                self.errors.append(f"{self.source}: nav label invites an action that does not exist yet: {label}")
+            self.nav_link_text = None
+        if tag == "nav":
+            self.nav_depth = max(0, self.nav_depth - 1)
+        if tag not in VOID_TAGS and any(frame[0] == tag for frame in self.stack[1:]):
+            while True:
+                frame = self.stack.pop()
+                if frame[0] == tag:
+                    break
+            self.stack[-1][2] = self.kicker_label(tag, "".join(frame[1]))
         if tag == "title":
             self.in_title = False
         if tag in {"script", "style"}:
             self.hidden_depth = max(0, self.hidden_depth - 1)
 
     def handle_data(self, data: str) -> None:
+        for frame in self.stack:
+            frame[1].append(data)
+        if data.strip():
+            self.stack[-1][2] = False
+        if self.nav_link_text is not None:
+            self.nav_link_text.append(data)
         if self.in_title:
             self.title_text += data
         if not self.hidden_depth:
@@ -321,6 +392,13 @@ def check(site: Path) -> list[str]:
                 size = re.match(r"clamp\(\s*(\d+(?:\.\d+)?)px\s*,", value, re.IGNORECASE)
             if not size or float(size.group(1)) < 11:
                 errors.append(f"{source}: font-size must use px or clamp with a minimum of 11px: {value}")
+        for number, unit in CSS_LETTER_SPACING.findall(content):
+            if (unit or "").lower() == "em" and float(number) < TRACKING_FLOOR_EM:
+                errors.append(f"{source}: letter-spacing tighter than {TRACKING_FLOOR_EM}em: {number}em")
+        light = CSS_LIGHT_INITIAL.search(content)
+        warm = CSS_TONE_WARM.search(content)
+        if light and warm and light.group(1).strip().lower() != warm.group(1).strip().lower():
+            errors.append(f"{source}: @property --light initial-value must match --tone-warm")
         for value in CSS_CONTENT.findall(content):
             for match in CSS_STRING.finditer(value):
                 decoded = decode_css_string(match.group()[1:-1])

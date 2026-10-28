@@ -22,7 +22,7 @@ function element(extra = {}) {
   };
 }
 
-function workbench(missing) {
+function workbench(missing, extra = {}) {
   const nodes = {
     '#demo-controls': element({ disabled: true }),
     '#brightness': element({ value: '75' }),
@@ -31,6 +31,7 @@ function workbench(missing) {
     '#state-power': element({ textContent: 'On' }),
     '#state-level': element({ textContent: '75%' }),
     '#state-color': element({ textContent: 'Warm white' }),
+    ...extra,
   };
   const swatches = ['warm', 'amber', 'sage', 'blue'].map((tone) => element({ dataset: { tone } }));
   const classes = new Set();
@@ -88,4 +89,60 @@ test('missing required readback leaves controls disabled', () => {
   const { nodes, classes } = workbench('#state-power');
   assert.equal(nodes['#demo-controls'].disabled, true);
   assert.equal(classes.has('js-ready'), false);
+});
+
+function readbackNode() {
+  const classes = new Set();
+  const log = [];
+  return {
+    classes,
+    log,
+    offsetWidth: 0,
+    classList: {
+      add(name) { classes.add(name); log.push('add:' + name); },
+      remove(name) { classes.delete(name); log.push('remove:' + name); },
+    },
+  };
+}
+
+test('readback confirmation plays only after user changes, never on load', () => {
+  const readback = readbackNode();
+  const { nodes, swatches } = workbench(undefined, { '.readback': readback });
+  assert.equal(readback.classes.has('is-confirmed'), false);
+  assert.deepEqual(readback.log, []);
+
+  nodes['#brightness'].value = '50';
+  nodes['#brightness'].fire('input');
+  assert.equal(nodes['#state-level'].textContent, '50%');
+  assert.ok(readback.classes.has('is-confirmed'));
+
+  swatches[2].fire('click');
+  assert.equal(nodes['#state-color'].textContent, 'Sage');
+  assert.deepEqual(readback.log.slice(-2), ['remove:is-confirmed', 'add:is-confirmed']);
+});
+
+test('initial update does not rewrite unchanged readback text', () => {
+  let writes = 0;
+  const power = element();
+  let text = 'On';
+  Object.defineProperty(power, 'textContent', {
+    get() { return text; },
+    set(next) { writes += 1; text = next; },
+  });
+  const { nodes } = workbench(undefined, { '#state-power': power });
+  assert.equal(writes, 0);
+  nodes['#brightness'].value = '0';
+  nodes['#brightness'].fire('input');
+  assert.equal(writes, 1);
+  assert.equal(text, 'Off');
+});
+
+test('inherited object keys are not accepted as tones', () => {
+  const { nodes, swatches } = workbench();
+  for (const key of ['__proto__', 'constructor', 'toString']) {
+    swatches[0].dataset.tone = key;
+    swatches[0].fire('click');
+    assert.equal(nodes['#state-color'].textContent, 'Warm white');
+    assert.match(nodes['#demo-lamp'].className, /\btone-warm\b/);
+  }
 });

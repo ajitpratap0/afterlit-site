@@ -295,5 +295,62 @@ class SiteCheckerTests(unittest.TestCase):
                 self.assertTrue(any("forbidden claim: download now" in error for error in check(self.site)))
 
 
+    def test_kicker_and_eyebrow_classes_are_rejected(self) -> None:
+        for markup in ('<p class="eyebrow">Label</p>', '<p class="small KICKER">Label</p>'):
+            with self.subTest(markup=markup):
+                self.write_index(markup)
+                self.assertTrue(any("kicker or eyebrow" in error for error in check(self.site)))
+        self.write_index('<p class="eyebrowse">Not a kicker</p>')
+        self.assertEqual(check(self.site), [])
+
+    def test_short_label_directly_before_a_heading_is_rejected(self) -> None:
+        for markup in (
+            '<span class="number">01 / CAPTURE</span><h3>Observe first.</h3>',
+            '<div><small>Step one</small>\n<h2>Observe first.</h2></div>',
+            '<p>STAGE ONE</p><h2>Observe first.</h2>',
+        ):
+            with self.subTest(markup=markup):
+                self.write_index(markup)
+                self.assertTrue(any("short label element directly before" in error for error in check(self.site)))
+        for markup in (
+            '<h3><span class="number">01</span> Capture: observe first.</h3>',
+            '<p>Observe the vendor app first.</p><h3>Next</h3>',
+            '<span>Label</span> then prose<h3>Next</h3>',
+            '<span></span><h3>Next</h3>',
+            '<span>Label</span><br><p>Body</p><h3>Next</h3>',
+        ):
+            with self.subTest(markup=markup):
+                self.write_index(markup)
+                self.assertEqual(check(self.site), [])
+
+    def test_nav_labels_must_not_invite_unavailable_actions(self) -> None:
+        for label in ("Contribute", " Download ", "Get <b>started</b>"):
+            with self.subTest(label=label):
+                self.write_index(f'<nav><a href="#top">{label}</a></nav>')
+                self.assertTrue(any("nav label invites" in error for error in check(self.site)))
+        self.write_index('<nav><a href="#top">For contributors</a></nav><p><a href="#top">Contribute</a></p>')
+        self.assertEqual(check(self.site), [])
+
+    def test_letter_spacing_below_floor_is_rejected(self) -> None:
+        css = self.site / "styles.css"
+        for value in ("-.05em", "-0.075em", "-1em"):
+            with self.subTest(value=value):
+                css.write_text(CSS + " h1 { letter-spacing:" + value + " }", encoding="utf-8")
+                self.assertTrue(any("letter-spacing tighter" in error for error in check(self.site)))
+        css.write_text(
+            CSS + " h1 { letter-spacing:-.04em } h2 { letter-spacing:-0.035em } p { letter-spacing:.09em; word-spacing:-1em }",
+            encoding="utf-8",
+        )
+        self.assertEqual(check(self.site), [])
+
+    def test_lamp_light_initial_value_must_match_warm_tone(self) -> None:
+        css = self.site / "styles.css"
+        registered = "@property --light { syntax:'<color>'; inherits:true; initial-value:%s; } :root { --tone-warm:#efbd7b; }"
+        css.write_text(CSS + registered % "#efbd7b", encoding="utf-8")
+        self.assertEqual(check(self.site), [])
+        css.write_text(CSS + registered % "#e7b477", encoding="utf-8")
+        self.assertTrue(any("initial-value must match" in error for error in check(self.site)))
+
+
 if __name__ == "__main__":
     unittest.main()
