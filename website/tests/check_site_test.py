@@ -385,7 +385,7 @@ class SiteCheckerTests(unittest.TestCase):
         before, main = INDEX.split('<main id="top">', 1)
         _, after = main.split('</main>', 1)
         (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
-        self.assertIn("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions, then .hero-pitch)", check(self.site))
+        self.assertIn("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions; any .hero-pitch after .hero-status)", check(self.site))
 
     def test_hero_status_collects_nested_text_and_counts_global_duplicates(self) -> None:
         body = ('<section class="hero other"><h1>afterlit</h1>'
@@ -403,16 +403,36 @@ class SiteCheckerTests(unittest.TestCase):
                 else:
                     self.assertEqual(errors, [])
 
-    def test_hero_missing_actions_or_pitch_is_out_of_order(self) -> None:
+    def test_hero_missing_actions_is_out_of_order(self) -> None:
         body = ('<section class="hero"><h1>afterlit</h1>'
                 '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
-                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section><section id="today"></section>')
+                '<p class="hero-pitch">x</p></section><section id="today"></section>')
         before, main = INDEX.split('<main id="top">', 1)
         _, after = main.split('</main>', 1)
-        for missing in ('<div class="hero-actions"></div>', '<p class="hero-pitch">x</p>'):
-            with self.subTest(missing=missing):
-                (self.site / "index.html").write_text(before + '<main id="top">' + body.replace(missing, '') + '</main>' + after, encoding="utf-8")
-                self.assertIn("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions, then .hero-pitch)", check(self.site))
+        (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
+        self.assertIn("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions; any .hero-pitch after .hero-status)", check(self.site))
+
+    def test_hero_pitch_is_optional_and_may_follow_status(self) -> None:
+        before, main = INDEX.split('<main id="top">', 1)
+        _, after = main.split('</main>', 1)
+        status = '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
+        for middle in (status + '<div class="hero-actions"></div>',
+                       status + '<p class="lede"><span class="hero-pitch">x</span> y</p><div class="hero-actions"></div>'):
+            with self.subTest(middle=middle):
+                body = '<section class="hero"><h1>afterlit</h1>' + middle + '</section><section id="today"></section>'
+                (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
+                self.assertEqual(check(self.site), [])
+
+    def test_hero_pitch_above_status_is_rejected(self) -> None:
+        before, main = INDEX.split('<main id="top">', 1)
+        _, after = main.split('</main>', 1)
+        status = '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
+        for head in ('<p class="hero-pitch">x</p><h1>afterlit</h1>' + status,
+                     '<h1>afterlit</h1><p class="hero-pitch">x</p>' + status):
+            with self.subTest(head=head):
+                body = '<section class="hero">' + head + '<div class="hero-actions"></div></section><section id="today"></section>'
+                (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
+                self.assertIn("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions; any .hero-pitch after .hero-status)", check(self.site))
 
     def write_main_body(self, body: str) -> None:
         before, main = INDEX.split('<main id="top">', 1)

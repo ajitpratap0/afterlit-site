@@ -36,6 +36,10 @@ NAV_FORBIDDEN_LABELS = {
     "contribute", "download", "install", "get started", "sign up", "join", "buy",
 }
 TRACKING_FLOOR_EM = -0.04
+HERO_ORDER_ERROR = (
+    "index.html: hero must lead with status (h1, then .hero-status, then .hero-actions; "
+    "any .hero-pitch after .hero-status)"
+)
 CSS_LETTER_SPACING = re.compile(r"(?<![\w-])letter-spacing\s*:\s*(-?\d*\.?\d+)(em|px)?", re.IGNORECASE)
 CSS_LIGHT_INITIAL = re.compile(
     r"@property\s+--light\s*\{[^}]*?initial-value\s*:\s*([^;}]+)", re.IGNORECASE | re.DOTALL
@@ -363,11 +367,13 @@ def check(site: Path) -> list[str]:
         if "pre-alpha" not in status_text or "no public download" not in status_text:
             errors.append("index.html: .hero-status must state pre-alpha and no public download")
         order = [parser.hero_positions.get(marker, -1) for marker in
-                 ("h1", "hero-status", "hero-actions", "hero-pitch")]
+                 ("h1", "hero-status", "hero-actions")]
+        pitch = parser.hero_positions.get("hero-pitch")
+        # The pitch is optional, but it may never sit above the status line as a label.
         if -1 in order or not all(
             earlier < later for earlier, later in zip(order, order[1:])
-        ):
-            errors.append("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions, then .hero-pitch)")
+        ) or (pitch is not None and pitch < order[1]):
+            errors.append(HERO_ORDER_ERROR)
     if parser.hero_section_frame is not None and (
         parser.section_after_hero is None or parser.section_after_hero.get("id") != "today"
     ):

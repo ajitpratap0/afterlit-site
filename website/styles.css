@@ -268,14 +268,11 @@ h3 {
   color:var(--status-pending-text)
 }
 
+/* The pitch opens the lede as its first sentence, so the hero keeps five tiers:
+   h1, status, lede, actions, note. */
 .hero-pitch {
-  margin:0 0 var(--s-2);
-  font-family:var(--font-body);
-  font-size:16px;
   font-weight:700;
-  line-height:1.5;
-  color:var(--ink);
-  text-wrap:balance
+  color:var(--ink)
 }
 
 .hero .lede {
@@ -322,8 +319,8 @@ h3 {
 .hero-note span {
   white-space:nowrap
 }
-.hero-note span[aria-hidden] {
-  margin-right:.45em;
+/* Plain spaces sit on both sides of the dot, so it stays centred between the phrases */
+.hero-note .note-sep {
   color:var(--text-soft)
 }
 
@@ -1418,12 +1415,15 @@ h3 {
     column-gap:clamp(32px,5vw,96px);
     row-gap:var(--s-6)
   }
+  /* The heading and its paragraph share one row; the paragraph sits level with the
+     heading's last line, so no empty band opens between them. */
   .problem h2 {
-    grid-column:1 / -1;
+    grid-column:1;
     max-width:15em
   }
   .problem>div>p {
-    grid-column:2
+    grid-column:2;
+    align-self:end
   }
   .problem h2 {
     font-size:clamp(40px, 3.6vw + 8px, 64px);
@@ -1533,7 +1533,7 @@ h3 {
     flex-direction:column;
     gap:2px
   }
-  .hero-note span[aria-hidden] {
+  .hero-note .note-sep {
     display:none
   }
   .hero-actions {
@@ -1896,40 +1896,24 @@ figure.hero-art {
 .art-bottom {
   padding:0
 }
+/* One caption, one link: a single underlined sentence, not a row of tab-like labels */
 .art-path {
   display:flex;
-  flex-wrap:wrap;
   align-items:center;
-  justify-content:space-between;
-  gap:var(--s-2) var(--s-4);
   min-height:var(--tap);
   padding:var(--s-3) var(--s-5);
-  color:var(--sage-text);
-  text-decoration:none
-}
-.art-path-label {
   color:var(--ink);
+  letter-spacing:.02em;
   text-decoration:underline;
   text-decoration-thickness:1px;
-  text-underline-offset:.3em
+  text-underline-offset:.3em;
+  text-wrap:balance
 }
-.art-path:hover .art-path-label {
+.art-path:hover {
   text-decoration-thickness:2px
-}
-.art-steps {
-  display:flex;
-  flex:1 1 auto;
-  flex-wrap:wrap;
-  justify-content:space-between;
-  gap:var(--s-2) var(--s-4)
 }
 .art-path:focus-visible {
   outline-offset:-3px
-}
-@media(min-width:951px) {
-  .art-steps {
-    max-width:24em
-  }
 }
 @media(max-width:620px) {
   .art-path {
@@ -1955,4 +1939,41 @@ figure.hero-art {
    narrow panel breaks only at the dot */
 .head-label>span {
   white-space:nowrap
+}
+
+/* Device check on wide screens: intro beside the terminal, then the four answers and the
+   confidence legend run across the full width beneath both, so neither column ends early. */
+@media(min-width:951px) {
+  .check-section {
+    grid-template-rows:auto auto
+  }
+  .check-section>.terminal {
+    position:static;
+    grid-row:1
+  }
+  .check-section>.section-detail {
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
+    column-gap:7vw;
+    align-items:start;
+    margin-top:var(--s-7)
+  }
+  .check-section .outcome-list {
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    column-gap:var(--s-6);
+    margin-top:0
+  }
+  .check-section .outcome-list li {
+    border-bottom:0
+  }
+  .check-section .section-detail>p {
+    grid-column:1
+  }
+  .check-section .section-detail>.confidence {
+    grid-column:2;
+    margin-top:22px
+  }
 }
