@@ -1532,7 +1532,11 @@ h3 {
   }
   .terminal pre {
     font-size:12px;
-    padding:22px 16px 10px
+    padding:22px 16px 10px;
+    /* A focused sample must fit below the sticky header (WCAG 2.2 SC 2.4.11);
+       taller output scrolls inside its labelled, focusable region. */
+    max-height:calc(100svh - var(--s-9) - var(--s-7));
+    overflow-y:auto
   }
   .terminal>p {
     padding:18px 16px;
@@ -1686,7 +1690,8 @@ h3 {
   }
   .terminal pre {
     white-space:pre-wrap;
-    overflow:visible
+    overflow:visible;
+    max-height:none
   }
   .terminal,.status-row,.artifact-list li,.steps article,details {
     break-inside:avoid
@@ -1745,8 +1750,10 @@ h3 {
   box-shadow:0 0 0 100vmax var(--paper);
   clip-path:inset(0 -100vmax)
 }
-main section,#demo {
-  scroll-margin-top:112px
+/* Scroll padding keeps anchor jumps and keyboard focus clear of the
+   sticky header (WCAG 2.2 SC 2.4.11). Each value exceeds the header height. */
+html {
+  scroll-padding-top:112px
 }
 @media(min-width:951px) {
   .check-section>.terminal,.doctor-section>.terminal {
@@ -1754,13 +1761,13 @@ main section,#demo {
   }
 }
 @media(max-width:900px) {
-  main section,#demo {
-    scroll-margin-top:var(--s-10)
+  html {
+    scroll-padding-top:calc(var(--s-10) + var(--s-4))
   }
 }
 @media(max-width:620px) {
-  main section,#demo {
-    scroll-margin-top:var(--s-9)
+  html {
+    scroll-padding-top:calc(var(--s-9) + var(--s-4))
   }
 }
 
