@@ -273,3 +273,74 @@ test('a focused nav link is scrolled fully into view inside the phone nav row', 
   handler(undefined);
   assert.equal(calls.length, 1);
 });
+
+test('the nav marks the section crossing the middle of the screen as the current location', () => {
+  const makeLink = (href, offsetLeft) => {
+    const attributes = new Map([['href', href]]);
+    return {
+      offsetLeft, offsetWidth: 80,
+      getAttribute(name) { return attributes.get(name); },
+      setAttribute(name, value) { attributes.set(name, value); },
+      removeAttribute(name) { attributes.delete(name); },
+    };
+  };
+  const links = [makeLink('#today', 0), makeLink('#check', 100), makeLink('#status', 300)];
+  const nav = {
+    scrollLeft: 0, scrollWidth: 500, clientWidth: 200,
+    addEventListener() {},
+    querySelectorAll(selector) { return selector === 'a[href^="#"]' ? links : []; },
+  };
+  const sections = [{ id: 'today' }, { id: '' }, { id: 'status' }, { id: 'doctor' }];
+  let callback;
+  let options;
+  const observed = [];
+  class FakeObserver {
+    constructor(cb, opts) { callback = cb; options = opts; }
+    observe(target) { observed.push(target); }
+  }
+  const nodes = { '.site-header nav': nav };
+  const document = {
+    querySelector(selector) { return nodes[selector] || null; },
+    querySelectorAll(selector) { return selector === 'main section' ? sections : []; },
+    documentElement: { classList: { add() {} } },
+  };
+  vm.runInNewContext(script, { document, IntersectionObserver: FakeObserver }, { timeout: 1000, filename: 'site.js' });
+  assert.equal(observed.length, 4);
+  assert.equal(options.rootMargin, '-50% 0px -50% 0px');
+  const current = () => links.map((link) => link.getAttribute('aria-current') || '');
+  assert.deepEqual(current(), ['', '', '']);
+  callback([{ isIntersecting: true, target: sections[2] }]);
+  assert.deepEqual(current(), ['', '', 'location']);
+  assert.equal(nav.scrollLeft, 240);
+  callback([{ isIntersecting: false, target: sections[0] }]);
+  assert.deepEqual(current(), ['', '', 'location']);
+  callback([{ isIntersecting: true, target: sections[3] }]);
+  assert.deepEqual(current(), ['', '', '']);
+  assert.equal(nav.scrollLeft, 240);
+  callback([{ isIntersecting: true, target: sections[0] }]);
+  assert.deepEqual(current(), ['location', '', '']);
+  assert.equal(nav.scrollLeft, 0);
+});
+
+test('returning to the first section scrolls the phone nav row back to its start', () => {
+  const link = { offsetLeft: 300, offsetWidth: 80, getAttribute() { return '#status'; }, setAttribute() {}, removeAttribute() {} };
+  const nav = { scrollLeft: 0, scrollWidth: 500, clientWidth: 200, addEventListener() {}, querySelectorAll() { return [link]; } };
+  const sections = [{ id: '' }, { id: 'status' }];
+  let callback;
+  class FakeObserver { constructor(cb) { callback = cb; } observe() {} }
+  const document = {
+    querySelector(selector) { return selector === '.site-header nav' ? nav : null; },
+    querySelectorAll(selector) { return selector === 'main section' ? sections : []; },
+    documentElement: { classList: { add() {} } },
+  };
+  vm.runInNewContext(script, { document, IntersectionObserver: FakeObserver }, { timeout: 1000, filename: 'site.js' });
+  callback([{ isIntersecting: true, target: sections[1] }]);
+  assert.equal(nav.scrollLeft, 240);
+  callback([{ isIntersecting: true, target: sections[0] }]);
+  assert.equal(nav.scrollLeft, 0);
+});
+
+test('without IntersectionObserver the nav is left unmarked', () => {
+  const { nodes } = workbench();
+  assert.equal(nodes['#demo-controls'].disabled, false);
+});

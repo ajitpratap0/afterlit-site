@@ -507,6 +507,15 @@ class SiteCheckerTests(unittest.TestCase):
                 self.write_index(broken)
                 self.assertIn('index.html: lamp readback requires #color-off-note with the hidden attribute', check(self.site))
 
+    def test_terminal_head_must_state_private_source_only(self) -> None:
+        message = 'index.html: every .terminal-head must say "PRIVATE SOURCE ONLY"'
+        self.write_main_body('<h1>afterlit</h1><div class="terminal-head"><span>PRIVATE SOURCE ONLY</span><span>NO RADIO USED</span></div>')
+        self.assertNotIn(message, check(self.site))
+        for label in ("LOCAL TERMINAL", "PRIVATE SOURCE", ""):
+            with self.subTest(label=label):
+                self.write_main_body('<h1>afterlit</h1><div class="terminal-head"><span>' + label + '</span><span>NO RADIO USED</span></div>')
+                self.assertIn(message, check(self.site))
+
     def test_new_structure_rules_apply_only_to_index(self) -> None:
         extra = '<section class="hero"></section><div class="readback"></div>'
         (self.site / "404.html").write_text(NOT_FOUND.replace('</body>', extra + '</body>'), encoding="utf-8")

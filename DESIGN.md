@@ -224,7 +224,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 - **Rust Text** (--rust-text #9d3b20): rust text on tinted grounds, such as the "BLE / LOCAL" diagram label and the no-JS note.
 
 ### Status (state only, always paired with a text label)
-- **Ready:** dot --status-ready #4b7a52; tag text --status-ready-text #3f6b47 (5.51:1). It is also used for the header badge dot, the readback confirmation dot and the readback pencil stroke.
+- **Ready:** dot --status-ready #4b7a52; tag text --status-ready-text #3f6b47 (5.51:1). It is also used for the header badge dot and the readback pencil stroke. The readback confirmation dot is a text glyph, so it uses --status-ready-text (5.20:1 on --readback).
 - **Pending:** dot --status-pending #a8592b; tag text --status-pending-text #9a4a1c (5.56:1).
 - **Not yet / Not implemented:** dot --status-future #6f7c75; tag text --text-soft.
 
@@ -298,16 +298,16 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 - **Shell:** max 1560px wide; side gutter clamp(24px,5.5vw,96px), 22px at 620px and below.
 - **Section rhythm:** sections are separated by a 1px --rule-soft line with padding var(--section-pad), clamp(64px, 6vw + 40px, 128px). The thesis band breathes more (clamp(96px,10vw,160px)) and splits 7/5 at 951px and above, with the statement on the left and its supporting sentence aligned to the baseline on the right.
 - **Spacing scale:** 4, 8, 12, 16, 24, 32, 48, 64, 96, 128 (--s-1 to --s-10).
-- **Content sections:** check and doctor use a two-column split (.9fr / 1.1fr): heading and explanation on the left, the terminal on the right. The today, practice run, lamp preview, contributors and status sections use a heading row above their content; the FAQ is a single column at measure. In check and doctor, the terminal is position:sticky (top 24px) at 951px and above, so the proof stays beside the text it illustrates.
+- **Content sections:** check and doctor use a two-column split (.9fr / 1.1fr). The DOM order is intro (heading and explanation), terminal, then detail (outcomes or the state legend, a disclosure and a phone-only "Back to top"). At 951px and above the intro and detail sit on the left and the terminal spans both rows on the right; at 950px and below they stack in DOM order, so the output is read before the legend that explains it. The today, practice run, lamp preview, contributors and status sections use a heading row above their content; the FAQ is a single column at measure. In check and doctor, the terminal is position:sticky (top 24px) at 951px and above, so the proof stays beside the text it illustrates.
 - **Hero:** splits 1.05fr / .95fr, with the diagram on the right.
 - **Steps:** a 4-column ruled strip. Each h3 starts with its ordinal in --text-soft (01 to 04) and names the stage, then the plain action; step headings do not auto-hyphenate.
 - **Status board:** a ruled grid of status rows, three columns at 951px and above, two from 761px, one below. Each row is a dot, a name with its state tag under it, and the description. There is no bottom border and no bottom padding on the status section: the FAQ's section rule closes the board.
 - **Page order:**
-  1. hero (status first: h1, the pre-alpha status line, then two actions: the device check and what to do if your app stopped working, then the pitch)
+  1. hero (status first: h1, the pre-alpha status line, then two actions: the device check and "What you can do today", then the pitch)
   2. what you can do today
   3. thesis
-  4. device check
-  5. doctor (radio scan and system requirements behind a disclosure)
+  4. device check (match confidence and the risky-name detail behind a disclosure)
+  5. readiness check, afterlit doctor (radio scan and system requirements behind a disclosure)
   6. practice run (afterlit demo, command line)
   7. lamp preview (browser only)
   8. contributors (with "What a run produces")
@@ -317,7 +317,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
   - 951 to 1439px: hero SVG labels upsized to 17 viewBox units so they never render below 11px.
   - 950px: splits stack, steps become 2 columns, the workbench stacks; hero SVG labels use 13 units.
   - 900px: the nav takes its own row with a 16px gap, so no link wraps inside the header row.
-  - 620px: steps become 1 column; status rows stack; the nav becomes one sideways-scrolling row that bleeds to the screen edges; the cut-off next label and a 24px right-edge fade show there is more; focused links scroll fully into view; the h1 drops to clamp(28px,9cqi,34px) at line-height 1.08; the readback uses 1fr 1fr 2fr columns so "Warm white" stays on one line.
+  - 620px: steps become 1 column; status rows stack; the nav becomes one sideways-scrolling row that bleeds to the screen edges; the cut-off next label and a 40px right-edge fade show there is more; focused links scroll fully into view; the h1 drops to clamp(28px,9cqi,34px) at line-height 1.08; the readback uses 1fr 1fr 2fr columns so "Warm white" stays on one line.
 - **Must hold:**
   - No horizontal overflow at 320px, including under translation expansion and the WCAG 1.4.12 text-spacing override. Grid children set min-width:0, text sets overflow-wrap:break-word, and headings use hyphens:auto.
   - Terminal lines wrap instead of scrolling.
@@ -376,12 +376,12 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 - **FAQ:** native details/summary with an ink CSS chevron, an 18px summary with a 44px target, and 16px answers. Answers expand in print (Chromium).
 
 ### Terminal panel
-- An ink background and a mono header row above a 1px terminal rule.
+- An ink background and a mono header row above a 1px terminal rule. Every header reads "PRIVATE SOURCE ONLY" and "NO RADIO USED", so the constraint is seen before the command; scripts/check_site.py requires the first on every .terminal-head.
 - A focusable labelled `pre` (role region, unique aria-label without scroll instructions), 13px, line-height 1.75, wrapping (pre-wrap, overflow-wrap:break-word). Each logical output line is a span.ln (inline-block, full width) with a 2ch hanging indent, and "Fix:" lines hang at 4ch, so a wrapped continuation never reads as a new output line. The text and newlines are unchanged, so copying gives the same characters. Because the lines wrap, the pre never scrolls; it keeps tabindex="0" and role="region" because scripts/check_site.py requires them on every pre.
 - The `$` prompt is in --terminal-prompt and aria-hidden.
 - A thin themed scrollbar as a fallback.
 - A caption paragraph saying what was shortened.
-- Developer-only detail goes into a "Notes for developers" details element, styled for the dark ground (terminal-note text, a prompt-coloured chevron and focus ring).
+- Developer-only detail and term glossaries go into a "Terms and notes for developers" details element, styled for the dark ground (terminal-note text, a prompt-coloured chevron and focus ring).
 
 ### Workbench (signature component)
 - **Bench visual** (--bench): a CSS-drawn lamp (shade clip-path, stem, base, and a blurred glow driven by --light and --glow through .level-* and .tone-*). Labels: "LAMP PREVIEW" and "● BROWSER ONLY".
@@ -395,8 +395,8 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 - The pane always states that it is a browser-only simulation that produces no evidence.
 
 ### Navigation
-- **Header row:** the wordmark (26px bold, -.04em, ink glyph, rust full stop), five in-page links in page order (What to do now, Device check, Lamp preview, Status, FAQ; 44px targets), and the status badge. There is no contributor link: the contributor section is reached in page order. scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started.
-- **Narrow screens:** at 900px and below the nav takes its own row; at 620px and below that row scrolls sideways (one row, 44px targets, inset focus ring, edge fade, no hidden scrollbar on desktop). A "Back to top" link follows the FAQ and returns to the page top, nav included.
+- **Header row:** the wordmark (26px bold, -.04em, ink glyph, rust full stop), five in-page links in page order (What you can do today, Device check, Lamp preview, Status, FAQ; 44px targets). Each destination has one label: the nav, the hero button and the heading for #today all read "What you can do today". The link for the section crossing the middle of the screen gets aria-current="location" (site.js, IntersectionObserver), drawn as a 2px ink underline at a 6px offset with no transition, and the status badge. There is no contributor link: the contributor section is reached in page order. scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started.
+- **Narrow screens:** at 900px and below the nav takes its own row; at 620px and below that row scrolls sideways (one row, 44px targets, inset focus ring, edge fade, no hidden scrollbar on desktop). On phones the row scrolls itself (instantly, never the page) so the current link is in view, and back to its start at the hero. A "Back to top" link follows the FAQ; at 950px and below the check, doctor and contributor sections also end with one.
 - A skip link appears on focus.
 
 ### Hero diagram

@@ -395,6 +395,12 @@ def check(site: Path) -> list[str]:
         for _, values, _, _ in parser.elements
     ):
         errors.append("index.html: lamp readback requires #color-off-note with the hidden attribute")
+    # Commands look copy-pasteable, so each terminal says up front that they need the private source.
+    for _, values, frame, _ in parser.elements:
+        if "terminal-head" in (values.get("class") or "").split():
+            head = " ".join("".join(frame[1]).lower().split())
+            if "private source only" not in head:
+                errors.append('index.html: every .terminal-head must say "PRIVATE SOURCE ONLY"')
     if len(parser.csp) != 1:
         errors.append("index.html: expected one Content-Security-Policy meta tag")
     for policy in parser.csp:

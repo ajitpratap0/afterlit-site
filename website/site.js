@@ -96,3 +96,38 @@
     }
   });
 })();
+
+// Show where the reader is: the nav link for the section crossing the middle of the
+// screen gets aria-current="location". On phones the sideways nav row also scrolls so
+// that link is in view. Sections without a nav link clear the mark.
+(() => {
+  const nav = document.querySelector('.site-header nav');
+  const Observer = typeof IntersectionObserver === 'function' ? IntersectionObserver : null;
+  if (!nav || !Observer || typeof nav.querySelectorAll !== 'function') return;
+  const links = new Map();
+  for (const link of nav.querySelectorAll('a[href^="#"]')) {
+    links.set(link.getAttribute('href').slice(1), link);
+  }
+  const sections = [...document.querySelectorAll('main section')];
+  if (!links.size || !sections.length) return;
+  const mark = (id, atTop) => {
+    const current = links.get(id) || null;
+    for (const link of links.values()) {
+      if (link === current) link.setAttribute('aria-current', 'location');
+      else link.removeAttribute('aria-current');
+    }
+    // Only scroll the row sideways, never the page, and without animation.
+    if (current && nav.scrollWidth > nav.clientWidth) {
+      const left = current.offsetLeft - (nav.clientWidth - current.offsetWidth) / 2;
+      nav.scrollLeft = Math.max(0, left);
+    } else if (atTop) {
+      nav.scrollLeft = 0;
+    }
+  };
+  const observer = new Observer((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting && entry.target) mark(entry.target.id || '', entry.target === sections[0]);
+    }
+  }, { rootMargin: '-50% 0px -50% 0px' });
+  for (const section of sections) observer.observe(section);
+})();
