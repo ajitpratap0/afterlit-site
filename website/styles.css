@@ -773,11 +773,32 @@ h3 {
   padding:clamp(28px,4vw,56px);
   background:var(--paper-raised)
 }
-.bench-controls h3 {
+/* The heading and intro sit above the controls on wide screens and above the lamp
+   when the workbench stacks. */
+.bench-intro {
+  padding:clamp(28px,4vw,56px) clamp(28px,4vw,56px) 0;
+  background:var(--paper-raised)
+}
+.bench-intro+.bench-visual+.bench-controls {
+  padding-top:var(--s-6)
+}
+@media(min-width:951px) {
+  .workbench {
+    grid-template-rows:auto 1fr
+  }
+  .bench-visual {
+    grid-column:1;
+    grid-row:1 / span 2
+  }
+  .bench-intro,.bench-controls {
+    grid-column:2
+  }
+}
+.bench-intro h3 {
   font-size:clamp(28px,2.4vw,36px);
   margin-bottom:12px
 }
-.bench-controls>p:not(.no-js-note):not(.evidence-note) {
+.bench-intro>p {
   color:var(--text-muted);
   line-height:1.55;
   max-width:390px;
@@ -786,7 +807,7 @@ h3 {
 .bench-controls fieldset {
   border:0;
   padding:0;
-  margin:40px 0 0
+  margin:0
 }
 .bench-controls fieldset:disabled {
   opacity:.55
@@ -1242,8 +1263,10 @@ h3 {
   margin-bottom:var(--s-7)
 }
 .faq-list {
-  border-top:1px solid var(--rule);
   max-width:48rem
+}
+.faq-group h3+details {
+  border-top:1px solid var(--rule)
 }
 .faq details {
   border-bottom:1px solid var(--rule);
@@ -1287,12 +1310,9 @@ h3 {
   margin:16px 0 0
 }
 
-/* Back to top: after the last question, before the footer */
+/* Back to top: once, after the last question, before the footer */
 .back-to-top {
   margin:var(--s-6) 0 0
-}
-.section-top {
-  display:none
 }
 .back-to-top a {
   display:inline-flex;
@@ -1440,9 +1460,6 @@ h3 {
   .section-detail>.outcome-list,.section-detail>.confidence {
     margin-top:0
   }
-  .section-top {
-    display:block
-  }
 
 }
 
@@ -1541,6 +1558,9 @@ h3 {
   }
   .bench-controls {
     padding:28px 23px
+  }
+  .bench-intro {
+    padding:28px 23px var(--s-5)
   }
 
   .site-footer {
@@ -1713,4 +1733,127 @@ h3 {
 }
 .method-note .number {
   margin-right:0
+}
+
+/* Round 2: a sticky header so the current-section underline stays in view.
+   The paper fill bleeds to the screen edges without widening the page. */
+.site-header {
+  position:sticky;
+  top:0;
+  z-index:5;
+  background:var(--paper);
+  box-shadow:0 0 0 100vmax var(--paper);
+  clip-path:inset(0 -100vmax)
+}
+main section,#demo {
+  scroll-margin-top:112px
+}
+@media(min-width:951px) {
+  .check-section>.terminal,.doctor-section>.terminal {
+    top:121px
+  }
+}
+@media(max-width:900px) {
+  main section,#demo {
+    scroll-margin-top:var(--s-10)
+  }
+}
+@media(max-width:620px) {
+  main section,#demo {
+    scroll-margin-top:var(--s-9)
+  }
+}
+
+/* Plain-language takeaway: the first line of each command-line section */
+.section-intro>p.takeaway,.head-copy>p.takeaway {
+  color:var(--ink);
+  font-size:18px;
+  line-height:1.55
+}
+.head-copy>p {
+  margin:0;
+  max-width:var(--measure);
+  color:var(--text-muted);
+  font-size:16px;
+  line-height:1.7
+}
+.head-copy>p+p {
+  margin-top:var(--s-3)
+}
+.section-detail>p+.confidence {
+  margin-top:var(--s-3)
+}
+.outcome-list small a {
+  color:var(--ink)
+}
+
+/* Reset returns the browser-only lamp to its starting state */
+.reset-button {
+  display:inline-flex;
+  align-items:center;
+  min-height:var(--tap);
+  margin-top:var(--s-5);
+  padding:0;
+  border:0;
+  border-bottom:1px solid var(--ink);
+  background:none;
+  color:var(--ink);
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer
+}
+.reset-button:hover {
+  border-bottom-width:2px
+}
+fieldset:disabled .reset-button {
+  cursor:not-allowed
+}
+
+/* FAQ in two small groups, in the order a visitor asks */
+.faq-group+.faq-group {
+  margin-top:var(--s-7)
+}
+.faq-group h3 {
+  font-size:clamp(22px,1.6vw + 8px,28px);
+  margin:var(--s-5) 0 var(--s-3)
+}
+
+/* Narrow lamp preview: heading and intro, then the lamp, then the readback directly
+   under it, then the controls, so a change and its reported state share one screen.
+   The readback holds no focusable element, so keyboard order is unaffected. */
+@media(max-width:950px) {
+  .bench-controls {
+    display:flex;
+    flex-direction:column
+  }
+  .bench-controls>.readback {
+    order:-1;
+    margin-top:0
+  }
+  .bench-intro+.bench-visual+.bench-controls {
+    padding-top:var(--s-4)
+  }
+  .bench-intro {
+    padding-bottom:var(--s-5)
+  }
+  .bench-controls fieldset {
+    margin-top:var(--s-5)
+  }
+}
+@media(max-width:620px) {
+  .hero {
+    gap:var(--s-6);
+    padding-bottom:var(--s-7)
+  }
+  .hero-art svg {
+    aspect-ratio:570/420
+  }
+  .bench-stage {
+    min-height:0;
+    padding:var(--s-2) 0
+  }
+  .demo-lamp {
+    transform:scale(.62);
+    margin:-59px 0
+  }
 }

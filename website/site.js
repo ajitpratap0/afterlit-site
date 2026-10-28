@@ -79,6 +79,17 @@
       confirmReadback();
     });
   }
+  // Reset returns to the starting state through the same update(), so the readback
+  // reports it like any other change. Browser only: nothing is sent anywhere.
+  const reset = document.querySelector('#demo-reset');
+  if (reset && typeof reset.addEventListener === 'function') {
+    reset.addEventListener('click', () => {
+      brightness.value = '75';
+      tone = 'warm';
+      update();
+      confirmReadback();
+    });
+  }
   controls.disabled = false;
   document.documentElement.classList.add('js-ready');
   update();

@@ -258,6 +258,35 @@ test('pencil stroke marks only values a user change rewrote, both steps together
   assert.deepEqual(fresh(), [false, false, true]);
 });
 
+test('reset preview returns to 75% warm white through the readback, from off too', () => {
+  const reset = element();
+  const { nodes, swatches } = workbench(undefined, { '#demo-reset': reset });
+  swatches[3].fire('click');
+  nodes['#brightness'].value = '0';
+  nodes['#brightness'].fire('input');
+  assert.equal(nodes['#state-power'].textContent, 'Off');
+  assert.equal(swatches[0].disabled, true);
+
+  reset.fire('click');
+  assert.equal(nodes['#brightness'].value, '75');
+  assert.equal(nodes['#brightness'].getAttribute('aria-valuetext'), '75%');
+  assert.equal(nodes['#req-power'].textContent, 'On');
+  assert.equal(nodes['#req-color'].textContent, 'Warm white');
+  assert.equal(nodes['#state-power'].textContent, 'On');
+  assert.equal(nodes['#state-level'].textContent, '75%');
+  assert.equal(nodes['#state-color'].textContent, 'Warm white');
+  assert.match(nodes['#demo-lamp'].className, /\blevel-75\b.*\btone-warm\b/);
+  assert.deepEqual(swatches.map((swatch) => swatch.getAttribute('aria-pressed')), [
+    'true', 'false', 'false', 'false',
+  ]);
+  assert.equal(swatches[0].disabled, false);
+});
+
+test('a missing reset button does not stop the preview', () => {
+  const { nodes } = workbench('#demo-reset');
+  assert.equal(nodes['#demo-controls'].disabled, false);
+});
+
 test('a focused nav link is scrolled fully into view inside the phone nav row', () => {
   let handler;
   const nav = { addEventListener(name, callback) { if (name === 'focusin') handler = callback; } };

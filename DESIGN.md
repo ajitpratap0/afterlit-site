@@ -226,7 +226,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 ### Status (state only, always paired with a text label)
 - **Ready:** dot --status-ready #4b7a52; tag text --status-ready-text #3f6b47 (5.51:1). It is also used for the header badge dot and the readback pencil stroke. The readback confirmation dot is a text glyph, so it uses --status-ready-text (5.20:1 on --readback).
 - **Pending:** dot --status-pending #a8592b; tag text --status-pending-text #9a4a1c (5.56:1).
-- **Not yet / Not implemented:** dot --status-future #6f7c75; tag text --text-soft.
+- **Not yet:** dot --status-future #6f7c75; tag text --text-soft.
 
 ### Secondary
 - **Field Sage** (--sage-text #4b654f, --sage-text-soft #536e5b, --sage-line #b9c3b2): "local" and readback labels, the badge border and the footer link underline. Never a call to action.
@@ -252,7 +252,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 ### Named Rules
 **The One Pencil Rule.** Rust is the only decorative accent. It marks the primary action, focus and annotations. Status colours report state and nothing else.
 
-**The Colour Is Never the Message Rule.** Every status dot sits next to a text state: "Available", "Pending", "Not yet" or "Not implemented".
+**The Colour Is Never the Message Rule.** Every status dot sits next to a text state: "Available", "Pending" or "Not yet". The status intro says "Not yet" covers both planned and unbuilt parts.
 
 ## Typography
 
@@ -298,7 +298,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 - **Shell:** max 1560px wide; side gutter clamp(24px,5.5vw,96px), 22px at 620px and below.
 - **Section rhythm:** sections are separated by a 1px --rule-soft line with padding var(--section-pad), clamp(64px, 6vw + 40px, 128px). The thesis band breathes more (clamp(96px,10vw,160px)) and splits 7/5 at 951px and above, with the statement on the left and its supporting sentence aligned to the baseline on the right.
 - **Spacing scale:** 4, 8, 12, 16, 24, 32, 48, 64, 96, 128 (--s-1 to --s-10).
-- **Content sections:** check and doctor use a two-column split (.9fr / 1.1fr). The DOM order is intro (heading and explanation), terminal, then detail (outcomes or the state legend, a disclosure and a phone-only "Back to top"). At 951px and above the intro and detail sit on the left and the terminal spans both rows on the right; at 950px and below they stack in DOM order, so the output is read before the legend that explains it. The today, practice run, lamp preview, contributors and status sections use a heading row above their content; the FAQ is a single column at measure. In check and doctor, the terminal is position:sticky (top 24px) at 951px and above, so the proof stays beside the text it illustrates.
+- **Content sections:** check and doctor use a two-column split (.9fr / 1.1fr). The DOM order is intro (heading and explanation), terminal, then detail (outcomes or the state legend, and in doctor a disclosure). Each intro opens with a plain-language takeaway (18px ink, class takeaway) before any command-line detail; in check that takeaway is "This page has no lookup box". At 951px and above the intro and detail sit on the left and the terminal spans both rows on the right; at 950px and below they stack in DOM order, so the output is read before the legend that explains it. The today, practice run, lamp preview, contributors and status sections use a heading row above their content; the FAQ is a single column at measure. In check and doctor, the terminal is position:sticky (top 121px, below the sticky header) at 951px and above. The practice run and contributor heading rows wrap their takeaway and intro in .head-copy so the 7/5 row keeps two columns, so the proof stays beside the text it illustrates.
 - **Hero:** splits 1.05fr / .95fr, with the diagram on the right.
 - **Steps:** a 4-column ruled strip. Each h3 starts with its ordinal in --text-soft (01 to 04) and names the stage, then the plain action; step headings do not auto-hyphenate.
 - **Status board:** a ruled grid of status rows, three columns at 951px and above, two from 761px, one below. Each row is a dot, a name with its state tag under it, and the description. There is no bottom border and no bottom padding on the status section: the FAQ's section rule closes the board.
@@ -306,13 +306,13 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
   1. hero (status first: h1, the pre-alpha status line, then two actions: the device check and "What you can do today", then the pitch)
   2. what you can do today
   3. thesis
-  4. device check (match confidence and the risky-name detail behind a disclosure)
+  4. device check (the confidence wording is an always-visible dl; the terminal note names the outcomes in transcript order; Out of scope ends with a recovery step back to step 01)
   5. readiness check, afterlit doctor (radio scan and system requirements behind a disclosure)
   6. practice run (afterlit demo, command line)
   7. lamp preview (browser only)
   8. contributors (with "What a run produces")
   9. status
-  10. FAQ, ending with a "Back to top" link
+  10. FAQ in two groups of four or fewer in visitor order ("Before you start", then "How it works", h3 each), ending with the page's only "Back to top" link
 - **Breakpoints:**
   - 951 to 1439px: hero SVG labels upsized to 17 viewBox units so they never render below 11px.
   - 950px: splits stack, steps become 2 columns, the workbench stacks; hero SVG labels use 13 units.
@@ -386,22 +386,24 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 ### Workbench (signature component)
 - **Bench visual** (--bench): a CSS-drawn lamp (shade clip-path, stem, base, and a blurred glow driven by --light and --glow through .level-* and .tone-*). Labels: "LAMP PREVIEW" and "● BROWSER ONLY".
 - **Controls** (--paper-raised):
-  - an h3 "Set the lamp." (no label above it);
+  - an h3 "Set the lamp." (no label above it), in .bench-intro;
   - a 44px range input in accent ink;
   - 44px round swatches using aria-pressed;
   - a readback panel with a Requested step and a Reported back step (step 02 has role status, aria-live polite, tabular numerals), text only rewritten when it changes. At 0% brightness the swatches are disabled, a note explains why, and both steps report Color "None".
+  - a "Reset preview" text button that returns the lamp to 75% and Warm white through the same update(), so the readback reports the reset like any other change.
+- **Layout:** the h3 "Set the lamp." and its intro sit in .bench-intro, the first child of the workbench. At 951px and above the bench visual spans both rows on the left and the intro sits above the controls on the right. At 950px and below the stack reads intro, lamp, then controls, and the controls column (flex) orders the readback first, directly under the lamp, so a change and its reported state share one screen. The readback holds nothing focusable, so keyboard order is unaffected. At 620px and below the lamp is scaled to .62.
 - **Without JS:** the fieldset stays disabled until site.js runs, and a note explains why.
 - **Forced colours:** the bench visual keeps its authored colours; swatches keep their hue with a Highlight ring.
 - The pane always states that it is a browser-only simulation that produces no evidence.
 
 ### Navigation
 - **Header row:** the wordmark (26px bold, -.04em, ink glyph, rust full stop), five in-page links in page order (What you can do today, Device check, Lamp preview, Status, FAQ; 44px targets). Each destination has one label: the nav, the hero button and the heading for #today all read "What you can do today". The link for the section crossing the middle of the screen gets aria-current="location" (site.js, IntersectionObserver), drawn as a 2px ink underline at a 6px offset with no transition, and the status badge. There is no contributor link: the contributor section is reached in page order. scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started.
-- **Narrow screens:** at 900px and below the nav takes its own row; at 620px and below that row scrolls sideways (one row, 44px targets, inset focus ring, edge fade, no hidden scrollbar on desktop). On phones the row scrolls itself (instantly, never the page) so the current link is in view, and back to its start at the hero. A "Back to top" link follows the FAQ; at 950px and below the check, doctor and contributor sections also end with one.
+- **Narrow screens:** at 900px and below the nav takes its own row; at 620px and below that row scrolls sideways (one row, 44px targets, inset focus ring, edge fade, no hidden scrollbar on desktop). On phones the row scrolls itself (instantly, never the page) so the current link is in view, and back to its start at the hero. A single "Back to top" link follows the FAQ; no section repeats it. The header is position:sticky (top 0, z-index 5, paper fill bled to the screen edges with a 100vmax box-shadow clipped by clip-path), so the wordmark link and the aria-current underline stay in view while reading. Sections carry scroll-margin-top (112px, 128px at 900px and below, 96px at 620px and below) so anchors land below the header.
 - A skip link appears on focus.
 
 ### Hero diagram
 - A sunk-paper panel with a faint grid: a computer, a lamp with halos, a rust wire and a crossed-out cloud. Mono annotations are 11 viewBox units (.05em tracking), upsized to 17 between 951 and 1439px, 13 between 621 and 950px and 24 on phones, so they never render below 11px. These sizes are SVG user units, recorded as diagram-label and diagram-label-phone. "BLE / LOCAL" starts at x=254, 14 units clear of the wire's vertical run, and is hidden on phones. On phones the enlarged labels are nudged by CSS transforms (the cloud label 14,14 units clear of the strike line, the two base labels 10 units below the drawings).
-- The caption row sits below the SVG with a top rule, without overlapping the drawing. Its captions read "Observe / Verify / Keep evidence" in --sage-text. Base labels use --sage-text with a 4px sunk-paper stroke halo and paint-order:stroke so grid lines do not reduce their contrast.
+- The caption row sits below the SVG with a top rule, without overlapping the drawing. Its captions read "Capture / Infer / Verify / Save", the four contributor step names, in --sage-text. At 620px and below the SVG uses preserveAspectRatio slice with aspect-ratio 570/420, trimming empty grid top and bottom so the today section starts higher. Base labels use --sage-text with a 4px sunk-paper stroke halo and paint-order:stroke so grid lines do not reduce their contrast.
 - role="img" with a full aria-label. It keeps its colours in forced colours.
 
 ### 404 page
