@@ -111,6 +111,10 @@ class SiteParser(HTMLParser):
         self.meta_content: list[str] = []
         self.csp: list[str] = []
         self.h1_count = 0
+        self.has_hero = False
+        self.start_tag_position = 0
+        self.hero_positions: dict[str, int] = {}
+        self.hero_status_texts: list[list[str]] = []
         self.pre_labels: set[str] = set()
         self.idrefs: list[tuple[str, str]] = []
         # Open elements as [tag, collected text, previous closed sibling was a short label].
@@ -129,6 +133,14 @@ class SiteParser(HTMLParser):
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         values = dict(attrs)
+        self.start_tag_position += 1
+        classes = set((values.get("class") or "").split())
+        if "hero" in classes:
+            self.has_hero = True
+        for marker in ("h1", "hero-status", "hero-actions", "hero-pitch"):
+            matches = tag == "h1" if marker == "h1" else marker in classes
+            if matches:
+                self.hero_positions.setdefault(marker, self.start_tag_position)
         parent = self.stack[-1]
         if tag in HEADING_TAGS and parent[2]:
             self.errors.append(
@@ -138,6 +150,9 @@ class SiteParser(HTMLParser):
         parent[2] = False
         if tag not in VOID_TAGS:
             self.stack.append([tag, [], False])
+        if "hero-status" in classes:
+            # Each frame already collects all descendant text until it is closed.
+            self.hero_status_texts.append(self.stack[-1][1] if tag not in VOID_TAGS else [])
         if tag == "nav":
             self.nav_depth += 1
         if tag == "a" and self.nav_depth:
@@ -325,6 +340,20 @@ def check(site: Path) -> list[str]:
     parser = pages[index]
     if parser.h1_count != 1:
         errors.append("index.html: expected exactly one h1")
+    if parser.has_hero:
+        if len(parser.hero_status_texts) != 1:
+            errors.append("index.html: hero must contain exactly one .hero-status")
+        status_text = " ".join(
+            "".join("".join(parts) for parts in parser.hero_status_texts).lower().split()
+        )
+        if "pre-alpha" not in status_text or "no public download" not in status_text:
+            errors.append("index.html: .hero-status must state pre-alpha and no public download")
+        order = [parser.hero_positions.get(marker, -1) for marker in
+                 ("h1", "hero-status", "hero-actions", "hero-pitch")]
+        if -1 in order or not all(
+            earlier < later for earlier, later in zip(order, order[1:])
+        ):
+            errors.append("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions, then .hero-pitch)")
     if len(parser.csp) != 1:
         errors.append("index.html: expected one Content-Security-Policy meta tag")
     for policy in parser.csp:

@@ -352,5 +352,67 @@ class SiteCheckerTests(unittest.TestCase):
         self.assertTrue(any("initial-value must match" in error for error in check(self.site)))
 
 
+    def test_valid_status_first_hero(self) -> None:
+        body = ('<section class="hero"><h1>afterlit</h1>'
+                '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section>')
+        before, main = INDEX.split('<main id="top">', 1)
+        _, after = main.split('</main>', 1)
+        (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
+        self.assertEqual(check(self.site), [])
+
+    def test_hero_without_status_is_rejected(self) -> None:
+        body = ('<section class="hero"><h1>afterlit</h1><p>Pre-alpha. The source is private.</p>'
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section>')
+        before, main = INDEX.split('<main id="top">', 1)
+        _, after = main.split('</main>', 1)
+        (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
+        self.assertIn("index.html: hero must contain exactly one .hero-status", check(self.site))
+
+    def test_hero_status_without_download_status_is_rejected(self) -> None:
+        body = ('<section class="hero"><h1>afterlit</h1>'
+                '<p class="hero-status">Pre-alpha. The source is private.</p>'
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section>')
+        before, main = INDEX.split('<main id="top">', 1)
+        _, after = main.split('</main>', 1)
+        (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
+        self.assertIn("index.html: .hero-status must state pre-alpha and no public download", check(self.site))
+
+    def test_hero_status_after_actions_is_rejected(self) -> None:
+        body = ('<section class="hero"><h1>afterlit</h1><div class="hero-actions"></div>'
+                '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
+                '<p class="hero-pitch">x</p></section>')
+        before, main = INDEX.split('<main id="top">', 1)
+        _, after = main.split('</main>', 1)
+        (self.site / "index.html").write_text(before + '<main id="top">' + body + '</main>' + after, encoding="utf-8")
+        self.assertIn("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions, then .hero-pitch)", check(self.site))
+
+    def test_hero_status_collects_nested_text_and_counts_global_duplicates(self) -> None:
+        body = ('<section class="hero other"><h1>afterlit</h1>'
+                '<p class="hero-status extra"><strong>Pre-alpha.</strong> The source is private and there is '
+                '<span>no public <em>download</em></span>.</p>'
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section>')
+        before, main = INDEX.split('<main id="top">', 1)
+        _, after = main.split('</main>', 1)
+        for extra in ('', '<p class="hero-status">Duplicate outside hero.</p>'):
+            with self.subTest(extra=extra):
+                (self.site / "index.html").write_text(before + '<main id="top">' + body + extra + '</main>' + after, encoding="utf-8")
+                errors = check(self.site)
+                if extra:
+                    self.assertIn("index.html: hero must contain exactly one .hero-status", errors)
+                else:
+                    self.assertEqual(errors, [])
+
+    def test_hero_missing_actions_or_pitch_is_out_of_order(self) -> None:
+        body = ('<section class="hero"><h1>afterlit</h1>'
+                '<p class="hero-status">Pre-alpha. The source is private and there is no public download.</p>'
+                '<div class="hero-actions"></div><p class="hero-pitch">x</p></section>')
+        before, main = INDEX.split('<main id="top">', 1)
+        _, after = main.split('</main>', 1)
+        for missing in ('<div class="hero-actions"></div>', '<p class="hero-pitch">x</p>'):
+            with self.subTest(missing=missing):
+                (self.site / "index.html").write_text(before + '<main id="top">' + body.replace(missing, '') + '</main>' + after, encoding="utf-8")
+                self.assertIn("index.html: hero must lead with status (h1, then .hero-status, then .hero-actions, then .hero-pitch)", check(self.site))
+
 if __name__ == "__main__":
     unittest.main()

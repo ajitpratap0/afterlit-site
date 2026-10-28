@@ -296,26 +296,27 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 - **Shell:** max 1560px wide; side gutter clamp(24px,5.5vw,96px), 22px at 620px and below.
 - **Section rhythm:** sections are separated by a 1px --rule-soft line with padding var(--section-pad), clamp(64px, 6vw + 40px, 128px). The thesis band breathes more (clamp(96px,10vw,160px)) and splits 7/5 at 951px and above, with the statement on the left and its supporting sentence aligned to the baseline on the right.
 - **Spacing scale:** 4, 8, 12, 16, 24, 32, 48, 64, 96, 128 (--s-1 to --s-10).
-- **Content sections:** a two-column split (.9fr / 1.1fr): heading and explanation on the left, the instrument (terminal, ruled list, FAQ) on the right. In check and doctor, the terminal is position:sticky (top 24px) at 951px and above, so the proof stays beside the text it illustrates.
+- **Content sections:** check and doctor use a two-column split (.9fr / 1.1fr): heading and explanation on the left, the terminal on the right. The practice run, lamp preview, status and today sections use a heading row above their content; the FAQ is a single column at measure. In check and doctor, the terminal is position:sticky (top 24px) at 951px and above, so the proof stays beside the text it illustrates.
 - **Hero:** splits 1.05fr / .95fr, with the diagram on the right.
 - **Steps:** a 4-column ruled strip. Each h3 starts with its rust ordinal (01 to 04) and names the stage, then the plain action; step headings do not auto-hyphenate.
-- **Status table:** at 951px and above, rows are a dot, a name with its state tag directly under it, and the description at measure; the table itself narrows to that content (12px + 16em + 31em + gaps, about 710px), so the row rules end where the text ends. Below that the rows stack.
+- **Status board:** a ruled grid of status rows, three columns at 951px and above, two from 761px, one below. Each row is a dot, a name with its state tag under it, and the description.
 - **Page order:**
-  1. hero
+  1. hero (status first: h1 says what afterlit is being built to do, then the pre-alpha status line, then what to do meanwhile, then the pitch)
   2. thesis
   3. device check
-  4. doctor
-  5. practice run
-  6. browser preview
+  4. doctor (radio scan and system requirements behind a disclosure)
+  5. practice run (afterlit demo, command line)
+  6. lamp preview (browser only)
   7. contributors (with "What a run produces")
   8. status
-  9. FAQ
+  9. what you can do today
+  10. FAQ
 - **Breakpoints:**
   - 951 to 1439px: hero SVG labels upsized to 17 viewBox units so they never render below 11px.
   - 950px: splits stack, steps become 2 columns, the workbench stacks; hero SVG labels use 13 units.
-  - 760px: the nav takes its own row with a 16px gap, so no link wraps alone.
+  - 900px: the nav takes its own row with a 16px gap, so no link wraps inside the header row.
   - 620px: steps become 1 column; status rows stack.
-  - 374px: the nav becomes a 2x2 grid, so no link wraps alone onto a second row.
+  - 520px: the nav becomes a two-column grid.
 - **Must hold:**
   - No horizontal overflow at 320px, including under translation expansion and the WCAG 1.4.12 text-spacing override. Grid children set min-width:0, text sets overflow-wrap:break-word, and headings use hyphens:auto.
   - Terminal lines wrap instead of scrolling.
@@ -360,7 +361,7 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 
 ### Hero note and hardware note
 - **Hero note:** body sans, 13px bold ink, sentence case. From 621px the three trust facts run inline with small rust middots; each fact is nowrap and each middot is glued to the fact before it with a no-break space, so no wrapped line starts with "·". Below 621px the middots hide and the facts stack one per line. Bold ink sets the facts apart from the muted hardware note below.
-- **Hardware note:** 14px muted, at measure. It is the hero's honesty line: pre-alpha, private source, no public download, real-device testing pending.
+- **Hero status:** 18px ink with a 3px pending-colour left rule and a bold "Pre-alpha." lead. It is the hero's honesty line and sits directly under the h1, above the actions and the pitch: private source, no public download, real-device testing pending. scripts/check_site.py requires exactly one .hero-status.
 
 ### Status badge
 - A 1px sage-line border, sage text, an 11px uppercase mono label, padding 8px 11px, and a 6px --status-ready dot. It is used once, in the header ("Pre-alpha").
@@ -392,8 +393,8 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 - The pane always states that it is a browser-only simulation that produces no evidence.
 
 ### Navigation
-- **Header row:** the wordmark (26px bold, -.04em, rust glyph and full stop), four in-page links in page order (Device check, Preview, For contributors, Status; 44px targets). The contributor link is a label, not an invitation: there is no public repository to contribute to, and scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started, and the status badge.
-- **Narrow screens:** at 760px and below the nav wraps onto its own row; at 374px and below it is a 2x2 grid.
+- **Header row:** the wordmark (26px bold, -.04em, rust glyph and full stop), five in-page links in page order (Device check, Lamp preview, For contributors, Status, FAQ; 44px targets). The contributor link is a label, not an invitation: there is no public repository to contribute to, and scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started, and the status badge.
+- **Narrow screens:** at 900px and below the nav takes its own row; at 520px and below it is a two-column grid.
 - A skip link appears on focus.
 
 ### Hero diagram
