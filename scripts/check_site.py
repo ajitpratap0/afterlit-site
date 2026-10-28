@@ -401,6 +401,14 @@ def check(site: Path) -> list[str]:
             head = " ".join("".join(frame[1]).lower().split())
             if "private source only" not in head:
                 errors.append('index.html: every .terminal-head must say "PRIVATE SOURCE ONLY"')
+            if "example output" not in head:
+                errors.append('index.html: every .terminal-head must say "EXAMPLE OUTPUT" so no prompt reads as an instruction')
+    # "Available" alone reads as "I can get it"; the tag itself must carry the private-source qualifier.
+    for _, values, frame, _ in parser.elements:
+        if "state-tag" in (values.get("class") or "").split():
+            tag_text = " ".join("".join(frame[1]).lower().split())
+            if tag_text.startswith("available") and "private source" not in tag_text:
+                errors.append('index.html: an "Available" .state-tag must say "private source"')
     if len(parser.csp) != 1:
         errors.append("index.html: expected one Content-Security-Policy meta tag")
     for policy in parser.csp:

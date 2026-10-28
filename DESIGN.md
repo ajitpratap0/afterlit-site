@@ -214,7 +214,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 ### Primary
 - **Workbench Rust** (--rust #b64727) is used for:
   - the primary button (and its hover)
-  - annotations: the wordmark full stop, the hero diagram wire, nodes, cloud strike and "BLE / LOCAL" label, and the no-JS note
+  - annotations: the wordmark full stop, the hero diagram wire, nodes, cloud strike and "BLE / LOCAL" label, and the no-JS note ("Turn on JavaScript to use the lamp preview; everything else on this page works without it.")
   - the focus ring
 
   Links, chevrons, step ordinals, slider controls and hero-note separators are ink or --text-soft, never rust.
@@ -269,7 +269,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
   - A status sentence sized to its column: clamp(36px,8cqi,72px), with a clamp(36px,5vw,72px) fallback. It has a 15em maximum width, manual hyphenation and balanced wrapping, with no authored line break.
   - At 620px and below the h1 is clamp(28px,9cqi,34px), line-height 1.08, -.02em.
   - Computed sizes and line counts at target viewports remain pending browser verification; the base rule ranges from 36 to 72px and the phone rule from 28 to 34px.
-- **Hero pitch** (.hero-pitch, 16px Arial 700, 1.5, ink): one plain line after the actions that leads into the lede. Not italic, not display, not rust.
+- **Hero pitch** (.hero-pitch, 16px Arial 700, 1.5, ink): one plain line after the actions, directly above the hero note, closing the hero copy. Not italic, not display, not rust.
 - **Thesis** (the problem h2, 400, clamp(40px, 3.6vw + 8px, 64px), 1.04, -.035em): the one typographic peak after the hero.
 - **Headline** (h2, 400, clamp(34px,3.5vw,58px), 1.08, -.03em, balanced).
 - **Title** (h3, 400, clamp(25px,2vw,32px), -.02em, balanced). The workbench h3 is clamp(28px,2.4vw,36px), always below its h2.
@@ -296,19 +296,20 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 ## Layout
 
 - **Shell:** max 1560px wide; side gutter clamp(24px,5.5vw,96px), 22px at 620px and below.
-- **Section rhythm:** sections are separated by a 1px --rule-soft line with padding var(--section-pad), clamp(64px, 6vw + 40px, 128px). The thesis band breathes more (clamp(96px,10vw,160px)) and splits 7/5 at 951px and above, with the statement on the left and its supporting sentence aligned to the baseline on the right.
+- **Section rhythm:** sections are separated by a 1px --rule-soft line with padding var(--section-pad), clamp(64px, 6vw + 40px, 128px). The thesis band breathes more (clamp(96px,10vw,160px)) and at 951px and above the statement runs the full width (max 15em) with its supporting sentence stepped into the right 5/12 column below it, so it does not repeat the heading-row split.
 - **Spacing scale:** 4, 8, 12, 16, 24, 32, 48, 64, 96, 128 (--s-1 to --s-10).
-- **Content sections:** check and doctor use a two-column split (.9fr / 1.1fr). The DOM order is intro (heading and explanation), terminal, then detail (outcomes or the state legend, and in doctor a disclosure). Each intro opens with a plain-language takeaway (18px ink, class takeaway) before any command-line detail; in check that takeaway is "This page has no lookup box". At 951px and above the intro and detail sit on the left and the terminal spans both rows on the right; at 950px and below they stack in DOM order, so the output is read before the legend that explains it. The today, practice run, lamp preview, contributors and status sections use a heading row above their content; the FAQ is a single column at measure. In check and doctor, the terminal is position:sticky (top 121px, below the sticky header) at 951px and above. The practice run and contributor heading rows wrap their takeaway and intro in .head-copy so the 7/5 row keeps two columns, so the proof stays beside the text it illustrates.
+- **Content sections:** check and doctor use a two-column split (.9fr / 1.1fr). The DOM order is intro (heading and explanation), terminal, then detail (outcomes or the state legend, and in doctor a disclosure). Each intro opens with a plain-language takeaway (18px ink, class takeaway) before any command-line detail; in check that takeaway is "This page has no lookup box" and glosses "command-line tool" on first use. Doctor shows only its takeaway, one sentence and the transcript; the state legend, the AFL-D codes and the system requirements sit in one disclosure ("What the states mean and system requirements"). At 951px and above the intro and detail sit on the left and the terminal spans both rows on the right; at 950px and below they stack in DOM order, so the output is read before the legend that explains it. The today, practice run, contributors and status sections use a heading row above their content (7/5 at 951px and above, align-items:start so each heading leads its section); the lamp preview has no split header: its h2 and one muted line stack at measure and the workbench leads; the FAQ is a single column at measure. In check and doctor, the terminal is position:sticky (top 121px, below the sticky header) at 951px and above. The practice run and contributor heading rows wrap their takeaway and intro in .head-copy so the 7/5 row keeps two columns, so the proof stays beside the text it illustrates.
 - **Hero:** splits 1.05fr / .95fr, with the diagram on the right.
-- **Steps:** a 4-column ruled strip. Each h3 starts with its ordinal in --text-soft (01 to 04) and names the stage, then the plain action; step headings do not auto-hyphenate.
+- **Steps:** a 4-column ruled strip. Each h3 starts with its ordinal in --text-soft (01 to 04) and names the stage, then the plain action; step headings do not auto-hyphenate. Step 03 keeps one plain sentence ("Each write needs your approval and starts from read-only.") and folds the probe detail into a ruled disclosure inside its own card ("How the probe stays safe").
+- **Ordinals:** every .number (today list and contributor steps) uses one treatment: the display face, weight 400, lining tabular numerals, --text-soft.
 - **Status board:** a ruled grid of status rows, three columns at 951px and above, two from 761px, one below. Each row is a dot, a name with its state tag under it, and the description. There is no bottom border and no bottom padding on the status section: the FAQ's section rule closes the board.
 - **Page order:**
-  1. hero (status first: h1, the pre-alpha status line, then two actions: the device check and "What you can do today", then the pitch)
+  1. hero (status first: h1, the pre-alpha status line, the lede that explains what afterlit checks first, then two actions: the device check and "What you can do today", then the pitch and the hero note)
   2. what you can do today
   3. thesis
-  4. device check (the confidence wording is an always-visible dl; the terminal note names the outcomes in transcript order; Out of scope ends with a recovery step back to step 01)
-  5. readiness check, afterlit doctor (radio scan and system requirements behind a disclosure)
-  6. practice run (afterlit demo, command line)
+  4. device check (the confidence wording is an always-visible dl; the terminal note names the outcomes in transcript order; Not freed yet and Out of scope both link back to step 01; Not freed yet also links to the contributor path)
+  5. readiness check, afterlit doctor (state legend, codes, radio scan and system requirements behind one disclosure)
+  6. practice run (the h2 is "The practice run"; the command afterlit demo appears once, in code style)
   7. lamp preview (browser only)
   8. contributors (with "What a run produces")
   9. status
@@ -317,7 +318,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
   - 951 to 1439px: hero SVG labels upsized to 17 viewBox units so they never render below 11px.
   - 950px: splits stack, steps become 2 columns, the workbench stacks; hero SVG labels use 13 units.
   - 900px: the nav takes its own row with a 16px gap, so no link wraps inside the header row.
-  - 620px: steps become 1 column; status rows stack; the nav becomes one sideways-scrolling row that bleeds to the screen edges; the cut-off next label and a 40px right-edge fade show there is more; focused links scroll fully into view; the h1 drops to clamp(28px,9cqi,34px) at line-height 1.08; the readback uses 1fr 1fr 2fr columns so "Warm white" stays on one line.
+  - 620px: steps become 1 column; status rows stack; the nav wraps onto two rows so all five labels are visible at load (40px link rows, each label unbroken); the h1 drops to clamp(28px,9cqi,34px) at line-height 1.08; the readback uses 1fr 1fr 2fr columns so "Warm white" stays on one line.
 - **Must hold:**
   - No horizontal overflow at 320px, including under translation expansion and the WCAG 1.4.12 text-spacing override. Grid children set min-width:0, text sets overflow-wrap:break-word, and headings use hyphens:auto.
   - Terminal lines wrap instead of scrolling.
@@ -370,13 +371,14 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 ### Ruled lists (outcomes, run outputs, confidence, today, status, FAQ)
 - A 1px rule between rows and a 22 to 24px vertical rhythm. Ordinals belong to ordered steps and the today list.
 - **Rows:** a bold title, then a 14px muted caption at measure.
-- **Confidence list:** a dl with mono dt and body dd, used for match confidence and the doctor report states (OK, Check, Problem, Skipped and Not applicable). It stacks on phones.
-- **Today list:** three ordered steps with inline ordinals, 18px bold titles and 16px explanations; three columns at 951px and above.
-- **Status rows:** a coloured dot, the name, its semantic state tag under the name (at 951px and above), and the description.
+- **Confidence list:** a dl with mono dt and body dd, used for match confidence and the doctor report states. Output words are quoted as literals ("OK", "Check" (a warning), "Problem", "Skipped", "Not applicable") so "Check" never reads as the device check or readiness check. It stacks on phones.
+- **Tool names:** one display name per tool (device check, readiness check, practice run, lamp preview); the command (afterlit check, afterlit doctor, afterlit demo) appears once, in code style.
+- **Today list:** three ordered steps with inline ordinals, 18px bold titles and 16px explanations; three columns at 951px and above. Step 01 ends with an ink link, "Not sure it is Bluetooth?", to the first FAQ answer (#faq-bluetooth), which starts open.
+- **Status rows:** a coloured dot, the name, its semantic state tag under the name (at 951px and above), and the description. Ready tags read "Available (private source)"; scripts/check_site.py rejects an "Available" tag without "private source".
 - **FAQ:** native details/summary with an ink CSS chevron, an 18px summary with a 44px target, and 16px answers. Answers expand in print (Chromium).
 
 ### Terminal panel
-- An ink background and a mono header row above a 1px terminal rule. Every header reads "PRIVATE SOURCE ONLY" and "NO RADIO USED", so the constraint is seen before the command; scripts/check_site.py requires the first on every .terminal-head.
+- An ink background and a mono header row above a 1px terminal rule. Every header reads "EXAMPLE OUTPUT · PRIVATE SOURCE ONLY" and "NO RADIO USED", so no prompt reads as an instruction and the constraint is seen before the command; the two halves of the first label are each nowrap, so a narrow panel breaks only at the dot. scripts/check_site.py requires "EXAMPLE OUTPUT" and "PRIVATE SOURCE ONLY" on every .terminal-head.
 - A focusable labelled `pre` (role region, unique aria-label without scroll instructions), 13px, line-height 1.75, wrapping (pre-wrap, overflow-wrap:break-word). Each logical output line is a span.ln (inline-block, full width) with a 2ch hanging indent, and "Fix:" lines hang at 4ch, so a wrapped continuation never reads as a new output line. The text and newlines are unchanged, so copying gives the same characters. Because the lines wrap, the pre never scrolls; it keeps tabindex="0" and role="region" because scripts/check_site.py requires them on every pre.
 - The `$` prompt is in --terminal-prompt and aria-hidden.
 - A thin themed scrollbar as a fallback.
@@ -398,13 +400,13 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 
 ### Navigation
 - **Header row:** the wordmark (26px bold, -.04em, ink glyph, rust full stop), five in-page links in page order (What you can do today, Device check, Lamp preview, Status, FAQ; 44px targets). Each destination has one label: the nav, the hero button and the heading for #today all read "What you can do today". The link for the section crossing the middle of the screen gets aria-current="location" (site.js, IntersectionObserver), drawn as a 2px ink underline at a 6px offset with no transition, and the status badge. There is no contributor link: the contributor section is reached in page order. scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started.
-- **Narrow screens:** at 900px and below the nav takes its own row; at 620px and below that row scrolls sideways (one row, 44px targets, inset focus ring, edge fade, no hidden scrollbar on desktop). On phones the row scrolls itself (instantly, never the page) so the current link is in view, and back to its start at the hero. A single "Back to top" link follows the FAQ; no section repeats it. The header is position:sticky (top 0, z-index 5, paper fill bled to the screen edges with a 100vmax box-shadow clipped by clip-path), so the wordmark link and the aria-current underline stay in view while reading. Sections carry scroll-margin-top (112px, 128px at 900px and below, 96px at 620px and below) so anchors land below the header.
+- **Narrow screens:** at 900px and below the nav takes its own row; at 620px and below it wraps onto two rows (40px link rows, inset focus ring), so all five labels are visible at load without scrolling. A single "Back to top" link follows the FAQ; no section repeats it. The header is position:sticky (top 0, z-index 5, paper fill bled to the screen edges with a 100vmax box-shadow clipped by clip-path), so the wordmark link and the aria-current underline stay in view while reading. html carries scroll-padding-top (112px, 144px at 900px and below and at 620px and below, where the two-row phone header is about 137px) so anchors land below the header.
 - A skip link appears on focus.
 
 ### Hero diagram
 - A sunk-paper panel with a faint grid: a computer, a lamp with halos, a rust wire and a crossed-out cloud. Mono annotations are 11 viewBox units (.05em tracking), upsized to 17 between 951 and 1439px, 13 between 621 and 950px and 24 on phones, so they never render below 11px. These sizes are SVG user units, recorded as diagram-label and diagram-label-phone. "BLE / LOCAL" starts at x=254, 14 units clear of the wire's vertical run, and is hidden on phones. On phones the enlarged labels are nudged by CSS transforms (the cloud label 14,14 units clear of the strike line, the two base labels 10 units below the drawings).
-- The caption row sits below the SVG with a top rule, without overlapping the drawing. Its captions read "Capture / Infer / Verify / Save", the four contributor step names, in --sage-text. At 620px and below the SVG uses preserveAspectRatio slice with aspect-ratio 570/420, trimming empty grid top and bottom so the today section starts higher. Base labels use --sage-text with a 4px sunk-paper stroke halo and paint-order:stroke so grid lines do not reduce their contrast.
-- role="img" with a full aria-label. It keeps its colours in forced colours.
+- The diagram is a figure: the picture (role="img") keeps its own label, and the caption row is a figcaption below it with a top rule, without overlapping the drawing. The caption is one link to #workflow: an underlined ink "Contributor path" followed by "Capture / Infer / Verify / Save", the four contributor step names, in --sage-text. At 620px and below the SVG uses preserveAspectRatio slice with aspect-ratio 570/420, trimming empty grid top and bottom so the today section starts higher. Base labels use --sage-text with a 4px sunk-paper stroke halo and paint-order:stroke so grid lines do not reduce their contrast.
+- The picture is role="img" with a full aria-label. It keeps its colours in forced colours.
 
 ### 404 page
 - One h1, "Page not found" (clamp(48px,5vw,64px)), and a lede linking to the home page, the device check and the current status, plus the "Back to afterlit" button. It uses the same stylesheet and cache token.

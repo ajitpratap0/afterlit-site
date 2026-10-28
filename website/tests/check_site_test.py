@@ -516,6 +516,22 @@ class SiteCheckerTests(unittest.TestCase):
                 self.write_main_body('<h1>afterlit</h1><div class="terminal-head"><span>' + label + '</span><span>NO RADIO USED</span></div>')
                 self.assertIn(message, check(self.site))
 
+    def test_terminal_head_must_say_example_output(self) -> None:
+        message = 'index.html: every .terminal-head must say "EXAMPLE OUTPUT" so no prompt reads as an instruction'
+        self.write_main_body('<h1>afterlit</h1><div class="terminal-head"><span>EXAMPLE OUTPUT · PRIVATE SOURCE ONLY</span><span>NO RADIO USED</span></div>')
+        self.assertNotIn(message, check(self.site))
+        self.write_main_body('<h1>afterlit</h1><div class="terminal-head"><span>PRIVATE SOURCE ONLY</span><span>NO RADIO USED</span></div>')
+        self.assertIn(message, check(self.site))
+
+    def test_available_state_tag_must_say_private_source(self) -> None:
+        message = 'index.html: an "Available" .state-tag must say "private source"'
+        for label in ("Available (private source)", "Pending", "Not yet"):
+            with self.subTest(label=label):
+                self.write_main_body('<h1>afterlit</h1><span class="state-tag">' + label + '</span>')
+                self.assertNotIn(message, check(self.site))
+        self.write_main_body('<h1>afterlit</h1><span class="state-tag">Available</span>')
+        self.assertIn(message, check(self.site))
+
     def test_new_structure_rules_apply_only_to_index(self) -> None:
         extra = '<section class="hero"></section><div class="readback"></div>'
         (self.site / "404.html").write_text(NOT_FOUND.replace('</body>', extra + '</body>'), encoding="utf-8")
