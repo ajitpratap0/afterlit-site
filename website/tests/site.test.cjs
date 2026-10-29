@@ -195,6 +195,28 @@ test('power off disables swatches and never reports a color', () => {
   assert.equal(nodes['#state-color'].textContent, 'Amber');
 });
 
+test('the selected colour is named beside the Color label, and None while the lamp is off', () => {
+  const { nodes, swatches } = workbench(undefined, { '#color-value': element({ textContent: 'Warm white' }) });
+  const shown = () => nodes['#color-value'].textContent;
+  assert.equal(shown(), 'Warm white');
+  swatches[2].fire('click');
+  assert.equal(shown(), 'Sage');
+  assert.equal(shown(), nodes['#state-color'].textContent);
+  nodes['#brightness'].value = '0';
+  nodes['#brightness'].fire('input');
+  assert.equal(shown(), 'None');
+  nodes['#brightness'].value = '50';
+  nodes['#brightness'].fire('input');
+  assert.equal(shown(), 'Sage');
+});
+
+test('a missing colour name does not stop the preview', () => {
+  const { nodes, swatches } = workbench('#color-value');
+  assert.equal(nodes['#demo-controls'].disabled, false);
+  swatches[3].fire('click');
+  assert.equal(nodes['#state-color'].textContent, 'Blue');
+});
+
 test('missing requested readback leaves controls disabled', () => {
   const { nodes, classes } = workbench('#req-level');
   assert.equal(nodes['#demo-controls'].disabled, true);

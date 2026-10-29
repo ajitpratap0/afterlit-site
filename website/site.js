@@ -15,6 +15,9 @@
   const readback = document.querySelector('.readback');
   const offNote = document.querySelector('#color-off-note');
   const swatchGroup = document.querySelector('.swatches');
+  // The selected colour's name beside the Color label, like the Brightness output.
+  // Not a live region: the reported-back step already announces the change.
+  const colorValue = document.querySelector('#color-value');
   // With JS the note keeps its space (visibility, not display) so the readback never jumps.
   if (offNote) offNote.hidden = false;
   // Readback values that get a pencil stroke when a user change rewrites them.
@@ -40,6 +43,7 @@
     set(reqPower, requested.power);
     set(reqLevel, requested.level);
     set(reqColor, requested.color);
+    if (colorValue && colorValue.textContent !== requested.color) colorValue.textContent = requested.color;
     // Step 2: what the simulated lamp reports back. In this browser simulation it always
     // echoes the request, in the same frame; no delay or device approval is faked.
     const reported = { ...requested };
@@ -95,8 +99,8 @@
   update();
 })();
 
-// If the nav row ever overflows sideways, bring a keyboard-focused
-// link fully into view so its focus ring is not cut off at the row's edge.
+// The nav wraps at every width today. If its row ever overflows sideways, bring a
+// keyboard-focused link fully into view so its focus ring is not cut off at the edge.
 (() => {
   const nav = document.querySelector('.site-header nav');
   if (!nav || typeof nav.addEventListener !== 'function') return;
@@ -109,8 +113,8 @@
 })();
 
 // Show where the reader is: the nav link for the section crossing the middle of the
-// screen gets aria-current="location". On phones the sideways nav row also scrolls so
-// that link is in view. Sections without a nav link clear the mark.
+// screen gets aria-current="location". If the nav row ever overflows sideways, it also
+// scrolls so that link is in view. Sections without a nav link clear the mark.
 (() => {
   const nav = document.querySelector('.site-header nav');
   const Observer = typeof IntersectionObserver === 'function' ? IntersectionObserver : null;
