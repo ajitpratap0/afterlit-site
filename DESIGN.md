@@ -187,7 +187,7 @@ components:
 
 # Design System: afterlit
 
-> This file records the system as it stands after the polish pass on branch feat/hero-wire-motion. Token names match the custom properties in the :root block of website/styles.css. Font sizes are written as literal px or clamp() in each rule, because scripts/check_site.py rejects font-size:var(). The north star name is unconfirmed by the owner.
+> This file records the system as currently shipped. Token names match the custom properties in the :root block of website/styles.css. Font sizes are written as literal px or clamp() in each rule, because scripts/check_site.py rejects font-size:var(). The north star name is unconfirmed by the owner.
 
 ## Overview
 
