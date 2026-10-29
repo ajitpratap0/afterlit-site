@@ -95,7 +95,7 @@
   update();
 })();
 
-// The phone nav is one row that scrolls sideways. Bring a keyboard-focused
+// If the nav row ever overflows sideways, bring a keyboard-focused
 // link fully into view so its focus ring is not cut off at the row's edge.
 (() => {
   const nav = document.querySelector('.site-header nav');

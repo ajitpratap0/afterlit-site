@@ -1785,9 +1785,11 @@ html {
     scroll-padding-top:calc(var(--s-10) + var(--s-4))
   }
 }
+/* Phones: the wrapped two-row header would hold a large share of a small screen,
+   so it scrolls away with the page instead of sticking. */
 @media(max-width:620px) {
-  html {
-    scroll-padding-top:calc(var(--s-10) + var(--s-4))
+  .site-header {
+    position:static
   }
 }
 
