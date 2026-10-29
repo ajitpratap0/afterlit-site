@@ -94,6 +94,12 @@ typography:
     fontSize: "26px"
     fontWeight: 800
     letterSpacing: "-0.04em"
+  read-title:
+    fontFamily: "Georgia, \"Times New Roman\", serif"
+    fontSize: "clamp(28px,2.4vw,36px)"
+    fontWeight: 400
+    lineHeight: 1.15
+    letterSpacing: "-0.02em"
   workbench-title:
     fontFamily: "Georgia, \"Times New Roman\", serif"
     fontSize: "clamp(28px,2.4vw,36px)"
@@ -181,7 +187,7 @@ components:
 
 # Design System: afterlit
 
-> This file records the system as it stands after the critique fixes on branch feat/critique-fixes. Token names match the custom properties in the :root block of website/styles.css. Font sizes are written as literal px or clamp() in each rule, because scripts/check_site.py rejects font-size:var(). The north star name is unconfirmed by the owner.
+> This file records the system as currently shipped. Token names match the custom properties in the :root block of website/styles.css. Font sizes are written as literal px or clamp() in each rule, because scripts/check_site.py rejects font-size:var(). The north star name is unconfirmed by the owner.
 
 ## Overview
 
@@ -196,7 +202,7 @@ The page is calm and reading-first. Ambition shows as precision:
 - honest status;
 - one rust action per view;
 - a single typographic peak after the hero (the thesis band);
-- a single authored motion moment (the lamp's light cross-fade plus the readback confirmation).
+- two authored motion moments: the hero wire inked once on load, and the lamp's light cross-fade plus the readback confirmation.
 
 The illustration language is line drawing on a faint grid: a computer, a lamp, a crossed-out cloud. There is no photography, 3D, gradient or glow except the lamp's own light.
 
@@ -271,7 +277,8 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
   - Computed sizes and line counts at target viewports remain pending browser verification; the base rule ranges from 36 to 72px and the phone rule from 28 to 34px.
 - **Hero pitch** (.hero-pitch, Arial 700, ink, inline): "A second life for your smart devices." opens the lede as its first sentence, so the hero copy has five tiers (h1, status, lede, actions, note). Not italic, not display, not rust, never above the h1 or the status line. The hero note separates its two phrases with a dot that has one plain space on each side, so it sits centred.
 - **Thesis** (the problem h2, 400, clamp(40px, 3.6vw + 8px, 64px), 1.04, -.035em): the one typographic peak after the hero.
-- **Headline** (h2, 400, clamp(34px,3.5vw,58px), 1.08, -.03em, balanced).
+- **Headline** (h2, 400, clamp(34px,3.5vw,58px), 1.08, -.03em, balanced): today, device check, lamp preview and contributors.
+- **Read title** (h2.read-title, 400, clamp(28px,2.4vw,36px), 1.15, -.02em): the reading sections (readiness check, practice run, current status, FAQ) step down one size, so the hero, today, the device check and the lamp preview carry the page. It shares the workbench-title scale and stays above every h3 inside those sections.
 - **Title** (h3, 400, clamp(25px,2vw,32px), -.02em, balanced). The workbench h3 is clamp(28px,2.4vw,36px), always below its h2.
 - **Lede** (18px, 1.65, max-width 30em).
 - **Body** (16px, 1.7, max-width 31em, about 70 characters): section copy and FAQ answers (FAQ answers use line-height 1.65).
@@ -280,6 +287,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 - **UI** (bold; nav 14px at 621px and above, 13px on phones; buttons 15px).
 - **Wordmark** (26px Arial 800, -.04em; 32px in the footer).
 - **Label** (11 to 12px mono, .09em, uppercase only; 12px is label-large): terminal headers, bench labels, state tags, range ends. Mixed-case mono sentences (bench foot, diagram footer, footer bottom line) use .02em.
+- **Separators:** one inline separator glyph, the middle dot (·), in the hero note, terminal headers and bench foot. The ● glyph is a status indicator, never a separator.
 - **Code** (13px, line-height 1.75; 12px at 620px and below; ligatures off; white-space pre-wrap).
 
 ### Named Rules
@@ -343,12 +351,14 @@ Flat by design: there are no box-shadows. Depth comes from tonal grounds (paper,
 
 ## Motion
 
-There is one authored moment: the control-and-readback loop of the browser lamp.
+There are two authored moments: the hero wire, inked once on load, and the control-and-readback loop of the browser lamp.
+
+- **Hero wire:** under prefers-reduced-motion:no-preference the rust wire draws from computer to lamp once (.7s, cubic-bezier(.16,1,.3,1), .15s delay, pathLength 1 dash), then the halos settle from scale .8 (.6s, .55s delay). The resting state is fully drawn; nothing waits on it and it never loops.
 
 - **Lamp:** --light (registered <color>) and --glow (registered <number>) cross-fade over .32s with cubic-bezier(.16,1,.3,1), so a colour change passes through real intermediate tints.
 - **Readback:** two steps, "01 Requested by this page" and "02 Reported back by the simulated lamp", under "SIMULATED IN THIS BROWSER". Both update in the same frame as the control. Delays and approvals are never faked. Only step 02 is a live region. Two marks confirm a change, both triggered only by user input, never on page load: the step 02 status dot plays a single .6s scale-and-fade, and a 2px --status-ready pencil stroke draws left to right under each value that changed (.5s, cubic-bezier(.16,1,.3,1)) and stays until the next change. Requested and reported strokes draw together, never staggered. A change that rewrites no value leaves the strokes in place.
-- **Micro feedback:** the FAQ and developer-notes chevrons rotate in .18s; the primary button background eases over .15s; link hover thickens the underline to 2px without transition; the selected swatch's ink ring opens to its 4px offset in .18s and the previous one closes in .1s.
-- **Forbidden:** entrance animations (including any load-time motion in the hero diagram), scroll-driven effects, parallax and staged loading.
+- **Micro feedback:** the FAQ and developer-notes chevrons rotate in .18s; the primary button background eases over .15s; link hover thickens the underline to 2px without transition; the hero text button and Reset preview thicken their bottom border to 2px inside their min-height, so nothing shifts; nav links show a 1px underline at the 6px offset on hover (the current link keeps its 2px line); footer links turn their sage underline ink on hover; an unpressed swatch shows a --swatch-line ring at a 2px offset on hover (never while focused, so the rust focus ring wins); the selected swatch's ink ring opens to its 4px offset in .18s and the previous one closes in .1s.
+- **Forbidden:** entrance animations on sections or copy (the hero wire is the only load-time motion), scroll-driven effects, parallax and staged loading.
 - **Reduced motion:** prefers-reduced-motion makes every change instant and removes the pulse; the pencil stroke still appears, instantly, so the record of what changed is kept.
 - **Fallback:** browsers without @property get an instant change.
 
@@ -379,7 +389,7 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 
 ### Terminal panel
 - An ink background and a mono header row above a 1px terminal rule. Every header reads "EXAMPLE OUTPUT · PRIVATE SOURCE ONLY" and "NO RADIO USED", so no prompt reads as an instruction and the constraint is seen before the command; the two halves of the first label are each nowrap, so a narrow panel breaks only at the dot. scripts/check_site.py requires "EXAMPLE OUTPUT" and "PRIVATE SOURCE ONLY" on every .terminal-head.
-- A focusable labelled `pre` (role region, unique aria-label without scroll instructions), 13px, line-height 1.75, wrapping (pre-wrap, overflow-wrap:break-word). Each logical output line is a span.ln (inline-block, full width) with a 2ch hanging indent, and "Fix:" lines hang at 4ch, so a wrapped continuation never reads as a new output line. The text and newlines are unchanged, so copying gives the same characters. Because the lines wrap, the pre never scrolls; it keeps tabindex="0" and role="region" because scripts/check_site.py requires them on every pre.
+- A focusable labelled `pre` (role region, unique aria-label without scroll instructions), 13px, line-height 1.75, wrapping (pre-wrap, overflow-wrap:break-word). Each logical output line is a span.ln (inline-block, full width) with a 2ch hanging indent, and "Fix:" lines hang at 4ch, so a wrapped continuation never reads as a new output line. The text and newlines are unchanged, so copying gives the same characters. Because the lines wrap, the pre does not scroll sideways. At 620px and below it caps its height (100svh minus 176px) and scrolls vertically, so a focused sample fits one screen. It keeps tabindex="0" and role="region" because scripts/check_site.py requires them on every pre.
 - The `$` prompt is in --terminal-prompt and aria-hidden.
 - A thin themed scrollbar as a fallback.
 - A caption paragraph saying what was shortened.
@@ -389,10 +399,11 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 - **Bench visual** (--bench): a CSS-drawn lamp (shade clip-path, stem, base, and a blurred glow driven by --light and --glow through .level-* and .tone-*). Labels: "LAMP PREVIEW" and "● BROWSER ONLY".
 - **Controls** (--paper-raised):
   - an h3 "Set the lamp." (no label above it), in .bench-intro;
-  - a 44px range input in accent ink;
-  - 44px round swatches using aria-pressed;
+  - a 44px range input in accent ink, with its value as a mono output beside the "Brightness" label;
+  - 44px round swatches using aria-pressed, with the selected colour's name (#color-value, "None" while the lamp is off) in the same mono style beside the "Color" label. It is not a live region: the reported-back step already announces the change;
   - a readback panel with a Requested step and a Reported back step (step 02 has role status, aria-live polite, tabular numerals), text only rewritten when it changes. At 0% brightness the swatches are disabled, a note explains why, and both steps report Color "None".
   - a "Reset preview" text button that returns the lamp to 75% and Warm white through the same update(), so the readback reports the reset like any other change.
+- **Intro copy:** "Choose a brightness and a color. The readback lists what this page requested and what the simulated lamp reported back." It never asks the visitor to compare the two, because in the browser they always match; the evidence note says why that check matters on a real device.
 - **Layout:** the h3 "Set the lamp." and its intro sit in .bench-intro, the first child of the workbench. At 951px and above the bench visual spans both rows on the left and the intro sits above the controls on the right. At 950px and below the stack reads intro, lamp, then controls, and the controls column (flex) orders the readback first, directly under the lamp, so a change and its reported state share one screen. The readback holds nothing focusable, so keyboard order is unaffected. At 620px and below the lamp is scaled to .62.
 - **Without JS:** the fieldset stays disabled until site.js runs, and a note explains why.
 - **Forced colours:** the bench visual keeps its authored colours; swatches keep their hue with a Highlight ring.
@@ -400,7 +411,7 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 
 ### Navigation
 - **Header row:** the wordmark (26px bold, -.04em, ink glyph, rust full stop), five in-page links in page order (What you can do today, Device check, Lamp preview, Status, FAQ; 44px targets). Each destination has one label: the nav and the heading for #today both read "What you can do today"; the hero's secondary button is a call to action toward it, "Three steps for now", so the first screen does not repeat the label. The link for the section crossing the middle of the screen gets aria-current="location" (site.js, IntersectionObserver), drawn as a 2px ink underline at a 6px offset with no transition, and the status badge. There is no contributor link: the contributor section is reached in page order. scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started.
-- **Narrow screens:** at 900px and below the nav takes its own row; at 620px and below it wraps onto two rows (40px link rows, inset focus ring), so all five labels are visible at load without scrolling. A single "Back to top" link follows the FAQ; no section repeats it. The header is position:sticky (top 0, z-index 5, paper fill bled to the screen edges with a 100vmax box-shadow clipped by clip-path), so the wordmark link and the aria-current underline stay in view while reading. html carries scroll-padding-top (112px, 144px at 900px and below and at 620px and below, where the two-row phone header is about 137px) so anchors land below the header.
+- **Narrow screens:** at 900px and below the nav takes its own row; at 620px and below it wraps onto two rows (40px link rows, inset focus ring), so all five labels are visible at load without scrolling. A single "Back to top" link follows the FAQ; no section repeats it. Above 620px the header is position:sticky (top 0, z-index 5, paper fill bled to the screen edges with a 100vmax box-shadow clipped by clip-path), so the wordmark link and the aria-current underline stay in view while reading; html carries scroll-padding-top (112px, 144px at 900px and below) so anchors land below it. At 620px and below the two-row header (about 137px) is position:static and scrolls away with the page, so it never holds a share of a small screen, and scroll-padding-top drops to 16px. In doctor, the terminal sticks at top 121px at 951px and above, below the sticky header.
 - A skip link appears on focus.
 
 ### Hero diagram

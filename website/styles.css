@@ -80,7 +80,10 @@
   box-sizing:border-box
 }
 html {
-  scroll-behavior:smooth
+  scroll-behavior:smooth;
+  /* Anchor jumps and keyboard focus land clear of the sticky header
+     (WCAG 2.2 SC 2.4.11). Each value exceeds the header height. */
+  scroll-padding-top:112px
 }
 body {
   margin:0;
@@ -132,14 +135,21 @@ h1,h2,h3,p,li,dd,dt,summary,small,.button,.site-header nav a {
   outline-offset:4px
 }
 
-/* Header */
+/* Header: sticky so the current-section underline stays in view. The paper fill
+   bleeds to the screen edges without widening the page. */
 .site-header {
+  position:sticky;
+  top:0;
+  z-index:5;
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:var(--s-6);
   min-height:96px;
-  border-bottom:1px solid var(--rule-soft)
+  border-bottom:1px solid var(--rule-soft);
+  background:var(--paper);
+  box-shadow:0 0 0 100vmax var(--paper);
+  clip-path:inset(0 -100vmax)
 }
 .brand {
   display:inline-flex;
@@ -170,6 +180,11 @@ h1,h2,h3,p,li,dd,dt,summary,small,.button,.site-header nav a {
   font-size:13px;
   font-weight:700;
   text-decoration:none
+}
+.site-header nav a:hover {
+  text-decoration:underline;
+  text-decoration-thickness:1px;
+  text-underline-offset:6px
 }
 /* Where you are: set by site.js as you read. No transition, so motion settings are unaffected. */
 .site-header nav a[aria-current=location] {
@@ -227,6 +242,13 @@ h2 {
   letter-spacing:-.03em;
   margin:0;
   text-wrap:balance
+}
+/* Read sections (doctor, practice run, status, FAQ) step down one size, so the hero,
+   today, the device check and the lamp preview carry the page. */
+h2.read-title {
+  font-size:clamp(28px,2.4vw,36px);
+  letter-spacing:-.02em;
+  line-height:1.15
 }
 h3 {
   font-size:clamp(25px,2vw,32px);
@@ -308,6 +330,10 @@ h3 {
 .text-button {
   border-bottom:1px solid var(--ink)
 }
+/* The 52px min-height includes the border, so the thicker line shifts nothing */
+.text-button:hover {
+  border-bottom-width:2px
+}
 .hero-note {
   font-family:var(--font-body);
   font-size:13px;
@@ -325,6 +351,7 @@ h3 {
 }
 
 .hero-art {
+  margin:0;
   background:var(--paper-sunk);
   border:1px solid var(--rule-soft);
   min-width:0;
@@ -337,7 +364,6 @@ h3 {
   flex-wrap:wrap;
   justify-content:space-between;
   gap:var(--s-2) var(--s-4);
-  padding:var(--s-3) var(--s-5);
   border-top:1px solid var(--rule-soft);
   font-size:12px;
   font-weight:700;
@@ -602,9 +628,6 @@ h3 {
   line-height:1.65;
   max-width:34em
 }
-.workflow-intro {
-  margin-top:22px
-}
 .run-outputs {
   margin-top:var(--s-8)
 }
@@ -843,7 +866,10 @@ h3 {
   font-size:13px;
   font-weight:700
 }
-.control-heading output {
+.control-heading p {
+  margin:0
+}
+.control-heading output,.control-value {
   font-family:var(--font-mono);
   color:var(--ink);
   font-variant-numeric:tabular-nums
@@ -869,6 +895,9 @@ h3 {
   font-size:13px;
   font-weight:700
 }
+.color-control .control-heading {
+  margin-bottom:var(--s-3)
+}
 .swatches {
   display:flex;
   flex-wrap:wrap;
@@ -883,6 +912,10 @@ h3 {
   outline:2px solid transparent;
   outline-offset:0;
   transition:outline-offset .1s ease-out,outline-color .1s ease-out
+}
+.js-ready .swatch:not(:disabled):not([aria-pressed=true]):not(:focus-visible):hover {
+  outline-color:var(--swatch-line);
+  outline-offset:2px
 }
 .swatch[aria-pressed=true] {
   border:2px solid var(--ink);
@@ -1379,6 +1412,9 @@ h3 {
   border-bottom:1px solid var(--sage-line);
   padding-bottom:5px
 }
+.footer-links a:hover {
+  border-bottom-color:var(--ink)
+}
 .footer-bottom {
   grid-column:1/-1;
   display:flex;
@@ -1417,15 +1453,13 @@ h3 {
   }
   /* The heading and its paragraph share one row; the paragraph sits level with the
      heading's last line, so no empty band opens between them. */
-  .problem h2 {
-    grid-column:1;
-    max-width:15em
-  }
   .problem>div>p {
     grid-column:2;
     align-self:end
   }
   .problem h2 {
+    grid-column:1;
+    max-width:15em;
     font-size:clamp(40px, 3.6vw + 8px, 64px);
     letter-spacing:-.035em;
     line-height:1.04
@@ -1433,11 +1467,11 @@ h3 {
   .problem p {
     margin:0
   }
-  .check-section>.terminal,.doctor-section>.terminal {
+  /* Below the sticky header */
+  .doctor-section>.terminal {
     position:sticky;
-    top:var(--s-5)
+    top:121px
   }
-
 }
 /* Hero diagram labels never render below 11px in the two-column hero */
 @media(min-width:951px) and (max-width:1439px) {
@@ -1510,6 +1544,9 @@ h3 {
   .badge {
     margin-left:auto
   }
+  html {
+    scroll-padding-top:calc(var(--s-10) + var(--s-4))
+  }
 }
 
 /* Phone */
@@ -1518,13 +1555,9 @@ h3 {
     padding:0 22px
   }
   .hero {
-    padding:48px 0 64px;
-    gap:48px
+    padding:var(--s-6) 0 var(--s-7);
+    gap:var(--s-6)
   }
-  h1 {
-    text-wrap:balance
-  }
-
   .lede {
     font-size:16px
   }
@@ -1554,7 +1587,6 @@ h3 {
     transform:translateY(10px)
   }
   .art-bottom {
-    padding:var(--s-3) var(--s-4);
     font-size:11px
   }
   .bench-top {
@@ -1613,14 +1645,19 @@ h3 {
   }
 }
 /* Phone nav: the five links wrap onto two rows so every label is visible at load.
-   Links keep their whole label on one line; the row's first link lines up with the page text. */
+   Links keep their whole label on one line; the row's first link lines up with the page text.
+   The two-row header would hold a large share of a small screen, so it scrolls away with
+   the page instead of sticking, and anchors need only a small inset. */
 @media(max-width:620px) {
+  html {
+    scroll-padding-top:var(--s-4)
+  }
   .site-header {
+    position:static;
     padding:var(--s-3) 0 var(--s-1);
     gap:var(--s-2) var(--s-4)
   }
   .site-header nav {
-    flex-wrap:wrap;
     width:calc(100% + var(--s-4));
     gap:0;
     margin:0 calc(-1 * var(--s-2))
@@ -1633,9 +1670,6 @@ h3 {
   }
   .site-header nav a:focus-visible {
     outline-offset:-3px
-  }
-  .hero {
-    padding-top:var(--s-6)
   }
   h1 {
     font-size:clamp(28px,9cqi,34px);
@@ -1650,6 +1684,34 @@ h3 {
     display:grid;
     grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);
     gap:var(--s-3)
+  }
+}
+
+/* Hero focal moment: the local wire is inked once from computer to lamp, then the
+   lamp's light spreads out. The resting state is fully drawn, so nothing waits
+   on the animation; it runs once and never loops. */
+@media(prefers-reduced-motion:no-preference) {
+  .hero-art .wire {
+    stroke-dasharray:1;
+    animation:wire-ink .7s cubic-bezier(.16,1,.3,1) .15s both
+  }
+  .hero-art .halo {
+    transform-box:fill-box;
+    transform-origin:center;
+    animation:halo-settle .6s cubic-bezier(.16,1,.3,1) .55s backwards
+  }
+}
+@keyframes wire-ink {
+  from {
+    stroke-dashoffset:1
+  }
+  to {
+    stroke-dashoffset:0
+  }
+}
+@keyframes halo-settle {
+  from {
+    transform:scale(.8)
   }
 }
 
@@ -1760,39 +1822,6 @@ h3 {
   }
 }
 
-/* Round 2: a sticky header so the current-section underline stays in view.
-   The paper fill bleeds to the screen edges without widening the page. */
-.site-header {
-  position:sticky;
-  top:0;
-  z-index:5;
-  background:var(--paper);
-  box-shadow:0 0 0 100vmax var(--paper);
-  clip-path:inset(0 -100vmax)
-}
-/* Scroll padding keeps anchor jumps and keyboard focus clear of the
-   sticky header (WCAG 2.2 SC 2.4.11). Each value exceeds the header height. */
-html {
-  scroll-padding-top:112px
-}
-@media(min-width:951px) {
-  .check-section>.terminal,.doctor-section>.terminal {
-    top:121px
-  }
-}
-@media(max-width:900px) {
-  html {
-    scroll-padding-top:calc(var(--s-10) + var(--s-4))
-  }
-}
-/* Phones: the wrapped two-row header would hold a large share of a small screen,
-   so it scrolls away with the page instead of sticking. */
-@media(max-width:620px) {
-  .site-header {
-    position:static
-  }
-}
-
 /* Plain-language takeaway: the first line of each command-line section */
 .section-intro>p.takeaway,.head-copy>p.takeaway {
   color:var(--ink);
@@ -1870,10 +1899,6 @@ fieldset:disabled .reset-button {
   }
 }
 @media(max-width:620px) {
-  .hero {
-    gap:var(--s-6);
-    padding-bottom:var(--s-7)
-  }
   .hero-art svg {
     aspect-ratio:570/420
   }
@@ -1887,18 +1912,9 @@ fieldset:disabled .reset-button {
   }
 }
 
-/* Round 3: the hero diagram is a figure. The picture keeps its one label; the strip
-   under it is a visible caption that links to the contributor path it names. */
-figure.hero-art {
-  margin:0
-}
-.hero-art-img {
-  display:block
-}
-.art-bottom {
-  padding:0
-}
-/* One caption, one link: a single underlined sentence, not a row of tab-like labels */
+/* The hero diagram is a figure. The picture keeps its one label; the strip under it is
+   a visible caption that links to the contributor path it names.
+   One caption, one link: a single underlined sentence, not a row of tab-like labels */
 .art-path {
   display:flex;
   align-items:center;
@@ -1950,7 +1966,6 @@ figure.hero-art {
     grid-template-rows:auto auto
   }
   .check-section>.terminal {
-    position:static;
     grid-row:1
   }
   .check-section>.section-detail {
