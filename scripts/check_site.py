@@ -36,6 +36,10 @@ NAV_FORBIDDEN_LABELS = {
     "contribute", "download", "install", "get started", "sign up", "join", "buy",
 }
 TRACKING_FLOOR_EM = -0.04
+HERO_ORDER_ERROR = (
+    "index.html: hero must lead with status (h1, then .hero-status, then .hero-actions; "
+    "any .hero-pitch after .hero-status)"
+)
 CSS_LETTER_SPACING = re.compile(r"(?<![\w-])letter-spacing\s*:\s*(-?\d*\.?\d+)(em|px)?", re.IGNORECASE)
 CSS_LIGHT_INITIAL = re.compile(
     r"@property\s+--light\s*\{[^}]*?initial-value\s*:\s*([^;}]+)", re.IGNORECASE | re.DOTALL
@@ -111,6 +115,15 @@ class SiteParser(HTMLParser):
         self.meta_content: list[str] = []
         self.csp: list[str] = []
         self.h1_count = 0
+        self.has_hero = False
+        self.start_tag_position = 0
+        self.hero_positions: dict[str, int] = {}
+        self.hero_status_texts: list[list[str]] = []
+        self.hero_section_frame: list | None = None
+        self.hero_section_closed = False
+        self.section_after_hero: dict[str, str | None] | None = None
+        # Retain frames and ancestor identities to distinguish descendants from siblings.
+        self.elements: list[tuple[str, dict[str, str | None], list, tuple[int, ...]]] = []
         self.pre_labels: set[str] = set()
         self.idrefs: list[tuple[str, str]] = []
         # Open elements as [tag, collected text, previous closed sibling was a short label].
@@ -129,6 +142,16 @@ class SiteParser(HTMLParser):
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         values = dict(attrs)
+        self.start_tag_position += 1
+        classes = set((values.get("class") or "").split())
+        if tag == "section" and self.hero_section_closed and self.section_after_hero is None:
+            self.section_after_hero = values
+        if "hero" in classes:
+            self.has_hero = True
+        for marker in ("h1", "hero-status", "hero-actions", "hero-pitch"):
+            matches = tag == "h1" if marker == "h1" else marker in classes
+            if matches:
+                self.hero_positions.setdefault(marker, self.start_tag_position)
         parent = self.stack[-1]
         if tag in HEADING_TAGS and parent[2]:
             self.errors.append(
@@ -136,8 +159,16 @@ class SiteParser(HTMLParser):
                 f"short label element directly before <{tag}>"
             )
         parent[2] = False
+        ancestors = tuple(id(frame) for frame in self.stack)
         if tag not in VOID_TAGS:
             self.stack.append([tag, [], False])
+        element_frame = self.stack[-1] if tag not in VOID_TAGS else [tag, [], False]
+        self.elements.append((tag, values, element_frame, ancestors))
+        if tag == "section" and "hero" in classes and self.hero_section_frame is None:
+            self.hero_section_frame = element_frame
+        if "hero-status" in classes:
+            # Each frame already collects all descendant text until it is closed.
+            self.hero_status_texts.append(self.stack[-1][1] if tag not in VOID_TAGS else [])
         if tag == "nav":
             self.nav_depth += 1
         if tag == "a" and self.nav_depth:
@@ -224,6 +255,8 @@ class SiteParser(HTMLParser):
         if tag not in VOID_TAGS and any(frame[0] == tag for frame in self.stack[1:]):
             while True:
                 frame = self.stack.pop()
+                if frame is self.hero_section_frame:
+                    self.hero_section_closed = True
                 if frame[0] == tag:
                     break
             self.stack[-1][2] = self.kicker_label(tag, "".join(frame[1]))
@@ -325,6 +358,63 @@ def check(site: Path) -> list[str]:
     parser = pages[index]
     if parser.h1_count != 1:
         errors.append("index.html: expected exactly one h1")
+    if parser.has_hero:
+        if len(parser.hero_status_texts) != 1:
+            errors.append("index.html: hero must contain exactly one .hero-status")
+        status_text = " ".join(
+            "".join("".join(parts) for parts in parser.hero_status_texts).lower().split()
+        )
+        if "pre-alpha" not in status_text or "no public download" not in status_text:
+            errors.append("index.html: .hero-status must state pre-alpha and no public download")
+        order = [parser.hero_positions.get(marker, -1) for marker in
+                 ("h1", "hero-status", "hero-actions")]
+        pitch = parser.hero_positions.get("hero-pitch")
+        # The pitch is optional, but it may never sit above the status line as a label.
+        if -1 in order or not all(
+            earlier < later for earlier, later in zip(order, order[1:])
+        ) or (pitch is not None and pitch < order[1]):
+            errors.append(HERO_ORDER_ERROR)
+    if parser.hero_section_frame is not None and (
+        parser.section_after_hero is None or parser.section_after_hero.get("id") != "today"
+    ):
+        errors.append('index.html: "What you can do today" (#today) must directly follow the hero')
+    readbacks = [element for element in parser.elements
+                 if "readback" in (element[1].get("class") or "").split()]
+    for _, readback_attrs, frame, _ in readbacks:
+        descendants = [element for element in parser.elements if id(frame) in element[3]]
+        live_regions = [element for element in descendants if "aria-live" in element[1]]
+        title_text = " ".join(
+            "".join(element[2][1]) for element in descendants
+            if "readback-title" in (element[1].get("class") or "").split()
+        ).lower()
+        required_ids = {"req-power", "req-level", "req-color", "state-power", "state-level", "state-color"}
+        if (
+            "aria-live" in readback_attrs
+            or len(live_regions) != 1
+            or "readback-reported" not in (live_regions[0][1].get("class") or "").split()
+            or "simulated" not in title_text
+            or not required_ids <= parser.ids
+        ):
+            errors.append("index.html: lamp readback must be labelled simulated, with one live region on the reported-back step")
+    if readbacks and not any(
+        values.get("id") == "color-off-note" and "hidden" in values
+        for _, values, _, _ in parser.elements
+    ):
+        errors.append("index.html: lamp readback requires #color-off-note with the hidden attribute")
+    # Commands look copy-pasteable, so each terminal says up front that they need the private source.
+    for _, values, frame, _ in parser.elements:
+        if "terminal-head" in (values.get("class") or "").split():
+            head = " ".join("".join(frame[1]).lower().split())
+            if "private source only" not in head:
+                errors.append('index.html: every .terminal-head must say "PRIVATE SOURCE ONLY"')
+            if "example output" not in head:
+                errors.append('index.html: every .terminal-head must say "EXAMPLE OUTPUT" so no prompt reads as an instruction')
+    # "Available" alone reads as "I can get it"; the tag itself must carry the private-source qualifier.
+    for _, values, frame, _ in parser.elements:
+        if "state-tag" in (values.get("class") or "").split():
+            tag_text = " ".join("".join(frame[1]).lower().split())
+            if tag_text.startswith("available") and "private source" not in tag_text:
+                errors.append('index.html: an "Available" .state-tag must say "private source"')
     if len(parser.csp) != 1:
         errors.append("index.html: expected one Content-Security-Policy meta tag")
     for policy in parser.csp:
