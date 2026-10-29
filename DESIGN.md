@@ -136,8 +136,7 @@ spacing:
   s-8: "64px"
   s-9: "96px"
   s-10: "128px"
-  section: "clamp(64px, 6vw + 40px, 128px)"
-  thesis: "clamp(96px, 10vw, 160px)"
+  section: "clamp(44px, 4vw + 24px, 84px)"
   measure: "31em"
   tap: "44px"
 components:
@@ -188,14 +187,14 @@ components:
 **Creative North Star: "The Repair Bench Notebook"**
 
 afterlit looks like a careful person's workbench notes: warm paper, navy ink, thin ruled lines between entries, and a single rust pencil used for what matters. The page states, qualifies and records; it does not sell with spectacle. It has two set pieces, and both are instruments:
-- dark terminal panels showing real, fully visible command output;
+- one dark terminal panel showing real, shortened device-check output;
 - a small simulated lamp whose readback panel confirms every control change.
 
 The page is calm and reading-first. Ambition shows as precision:
 - exact output;
 - honest status;
 - one rust action per view;
-- a single typographic peak after the hero (the thesis band);
+- a compact owner-help band immediately after the hero;
 - a single authored motion moment (the lamp's light cross-fade plus the readback confirmation).
 
 The illustration language is line drawing on a faint grid: a computer, a lamp, a crossed-out cloud. There is no photography, 3D, gradient or glow except the lamp's own light.
@@ -214,7 +213,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 ### Primary
 - **Workbench Rust** (--rust #b64727) is used for:
   - the primary button and the wordmark full stop
-  - the italic hero phrase and the step ordinals
+  - the italic hero phrase and the Today list markers
   - the focus ring, chevrons and diagram wires
 
   It is 4.78:1 on paper.
@@ -268,7 +267,6 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
   - The size grows steadily with width and never exceeds 96px (measured: 48px at 320 and 600, about 55 at 768, 59 at 1024, 84 at 1440, 88 at 1920).
   - The second line is an italic rust `em`.
   - The authored `<br>` holds at two-column widths; text-wrap:balance applies only at 620px and below, where the `<br>` is hidden.
-- **Thesis** (the problem h2, 400, clamp(40px, 3.6vw + 8px, 64px), 1.04, -.035em): the one typographic peak after the hero.
 - **Headline** (h2, 400, clamp(34px,3.5vw,58px), 1.08, -.03em, balanced).
 - **Title** (h3, 400, clamp(25px,2vw,32px), -.02em, balanced). The workbench h3 is clamp(28px,2.4vw,36px), always below its h2.
 - **Lede** (18px, 1.65, max-width 30em).
@@ -294,28 +292,25 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 ## Layout
 
 - **Shell:** max 1560px wide; side gutter clamp(24px,5.5vw,96px), 22px at 620px and below.
-- **Section rhythm:** sections are separated by a 1px --rule-soft line with padding var(--section-pad), clamp(64px, 6vw + 40px, 128px). The thesis band breathes more (clamp(96px,10vw,160px)) and splits 7/5 at 951px and above, with the statement on the left and its supporting sentence aligned to the baseline on the right.
+- **Section rhythm:** sections are separated by a 1px --rule-soft line with padding var(--section-pad), clamp(44px, 4vw + 24px, 84px), roughly a third less than before. The Today band uses 32px vertical padding.
 - **Spacing scale:** 4, 8, 12, 16, 24, 32, 48, 64, 96, 128 (--s-1 to --s-10).
-- **Content sections:** a two-column split (.9fr / 1.1fr): heading and explanation on the left, the instrument (terminal, ruled list, FAQ) on the right. In check and doctor, the terminal is position:sticky (top 24px) at 951px and above, so the proof stays beside the text it illustrates.
+- **Content sections:** device check keeps a two-column split (.9fr / 1.1fr), with its terminal sticky (top 24px) at 951px and above. Today, contributors, status and FAQ follow a single-column reading order; the FAQ list is capped at 840px.
 - **Hero:** splits 1.05fr / .95fr, with the diagram on the right.
-- **Steps:** a 4-column ruled strip. Each h3 starts with its rust ordinal (01 to 04) and names the stage, then the plain action; step headings do not auto-hyphenate.
-- **Status table:** at 951px and above, rows are a dot, a name with its state tag directly under it, and the description at measure; the table itself narrows to that content (12px + 16em + 31em + gaps, about 710px), so the row rules end where the text ends. Below that the rows stack.
+- **Contributor detail:** the workflow is a short paragraph followed by a native developer disclosure, including plain descriptions of doctor and the practice run instead of transcripts.
+- **Status table:** spans the section; at 951px and above, rows are a dot, a name with its state tag directly under it, and the description at measure. On phones the rows stack.
 - **Page order:**
   1. hero
-  2. thesis
+  2. What you can do today
   3. device check
-  4. doctor
-  5. practice run
-  6. browser preview
-  7. contributors (with "What a run produces")
-  8. status
-  9. FAQ
+  4. browser preview
+  5. contributors (with doctor and practice-run notes in a disclosure)
+  6. status
+  7. FAQ (four short answers)
 - **Breakpoints:**
   - 951 to 1439px: hero SVG labels upsized to 17 viewBox units so they never render below 11px.
-  - 950px: splits stack, steps become 2 columns, the workbench stacks; hero SVG labels use 13 units.
+  - 950px: the device-check split and workbench stack; hero SVG labels use 13 units.
   - 760px: the nav takes its own row with a 16px gap, so no link wraps alone.
-  - 620px: steps become 1 column; status rows stack.
-  - 374px: the nav becomes a 2x2 grid, so no link wraps alone onto a second row.
+  - 620px: status rows stack; the nav becomes a two-column grid with Today spanning the first row.
 - **Must hold:**
   - No horizontal overflow at 320px, including under translation expansion and the WCAG 1.4.12 text-spacing override. Grid children set min-width:0, text sets overflow-wrap:break-word, and headings use hyphens:auto.
   - Terminal lines wrap instead of scrolling.
@@ -358,17 +353,17 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 - **Focus:** a 3px solid rust outline with a 4px offset.
 - **One primary per view.** The hero primary reads "See how the device check works".
 
-### Hero note and hardware note
-- **Hero note:** body sans, 13px bold ink, sentence case. From 621px the three trust facts run inline with small rust middots; each fact is nowrap and each middot is glued to the fact before it with a no-break space, so no wrapped line starts with "·". Below 621px the middots hide and the facts stack one per line. Bold ink sets the facts apart from the muted hardware note below.
-- **Hardware note:** 14px muted, at measure. It is the hero's honesty line: pre-alpha, private source, no public download, real-device testing pending.
+### Hero note, status line and Today band
+- **Hero note:** body sans, 13px bold ink, sentence case. From 621px the three trust facts run inline with small rust middots; each fact is nowrap and each middot is glued to the fact before it with a no-break space, so no wrapped line starts with "·". Below 621px the middots hide and the facts stack one per line.
+- **Hardware note:** a 14px bold ink status line directly under the lede, before the actions, with a 1px rust left rule and 16px inset: pre-alpha, private source, no public download, real-device testing (Gate 1) pending.
+- **Today band:** immediately follows the hero, with a 25–32px heading and three compact 14px ordered lines for exact-model research, keeping the vendor app and pairing, and returning to this page for status. Lines wrap naturally on phones.
 
 ### Status badge
 - A 1px sage-line border, sage text, an 11px uppercase mono label, padding 8px 11px, and a 6px --status-ready dot. It is used once, in the header ("Pre-alpha").
 
-### Ruled lists (outcomes, run outputs, confidence, status, FAQ)
+### Ruled lists (status and FAQ)
 - A 1px rule between rows and a 22 to 24px vertical rhythm. There are no index numbers; numbers belong only to the ordered steps.
 - **Rows:** a bold title, then a 14px muted caption at measure.
-- **Confidence list:** a dl with mono dt ("is", "is likely", "may be ... (unconfirmed match)") and body dd. It stacks on phones.
 - **Status rows:** a coloured dot, the name, its semantic state tag under the name (at 951px and above), and the description.
 - **FAQ:** native details/summary with a rust CSS chevron, an 18px summary with a 44px target, and 16px answers. Answers expand in print (Chromium).
 
@@ -378,7 +373,7 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 - The `$` prompt is in --terminal-prompt and aria-hidden.
 - A thin themed scrollbar as a fallback.
 - A caption paragraph saying what was shortened.
-- Developer-only detail goes into a "Notes for developers" details element, styled for the dark ground (terminal-note text, a prompt-coloured chevron and focus ring).
+- Developer-only detail goes into a "Notes for developers" details element in the contributor section, using the paper ground and the same rust chevron as the FAQ.
 
 ### Workbench (signature component)
 - **Bench visual** (--bench): a CSS-drawn lamp (shade clip-path, stem, base, and a blurred glow driven by --light and --glow through .level-* and .tone-*). Labels: "SIMULATED DEVICE / LAMP 01" and "● BROWSER ONLY".
@@ -392,8 +387,8 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 - The pane always states that it is a browser-only simulation that produces no evidence.
 
 ### Navigation
-- **Header row:** the wordmark (26px bold, -.04em, rust glyph and full stop), four in-page links in page order (Device check, Preview, For contributors, Status; 44px targets). The contributor link is a label, not an invitation: there is no public repository to contribute to, and scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started, and the status badge.
-- **Narrow screens:** at 760px and below the nav wraps onto its own row; at 374px and below it is a 2x2 grid.
+- **Header row:** the wordmark (26px bold, -.04em, rust glyph and full stop), five in-page links in page order (Today, Device check, Preview, For contributors, Status; 44px targets). The contributor link is a label, not an invitation: there is no public repository to contribute to, and scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started, and the status badge.
+- **Narrow screens:** at 760px and below the nav wraps onto its own row; at 620px and below it is a two-column grid with Today spanning the first row.
 - A skip link appears on focus.
 
 ### Hero diagram

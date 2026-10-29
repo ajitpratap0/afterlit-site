@@ -56,7 +56,7 @@
   --s-8:64px;
   --s-9:96px;
   --s-10:128px;
-  --section-pad:clamp(64px, 6vw + 40px, 128px);
+  --section-pad:clamp(44px, 4vw + 24px, 84px);
   --measure:31em;
   --gutter:clamp(24px,5.5vw,96px);
   --tap:44px;
@@ -297,9 +297,12 @@ h3 {
 .hardware-note {
   max-width:var(--measure);
   margin:0;
+  padding-left:var(--s-4);
+  border-left:1px solid var(--rust);
   font-size:14px;
   line-height:1.6;
-  color:var(--text-muted)
+  font-weight:700;
+  color:var(--ink)
 }
 .hero-art {
   background:var(--paper-sunk);
@@ -416,16 +419,44 @@ h3 {
   max-width:800px
 }
 
-.quickstart,.faq,.check-section,.doctor-section {
+.check-section {
   display:grid;
   grid-template-columns:.9fr 1.1fr;
   gap:7vw
 }
-.quickstart h2,.faq h2,.check-section h2,.doctor-section h2 {
+.check-section h2 {
   max-width:520px
 }
 .check-section>.terminal,.doctor-section>.terminal {
   align-self:start
+}
+
+/* Owner help is a compact ruled list, not another panel split. */
+.today {
+  padding-block:var(--s-6)
+}
+.today h2 {
+  font-size:clamp(25px,2vw,32px)
+}
+.today ol {
+  display:grid;
+  gap:var(--s-2);
+  margin:var(--s-4) 0 0;
+  padding-left:var(--s-5);
+  font-size:14px;
+  line-height:1.55
+}
+.today li::marker {
+  color:var(--rust)
+}
+.status-section .section-heading,.workflow .section-heading {
+  margin-bottom:var(--s-5)
+}
+.faq h2 {
+  margin-bottom:var(--s-5)
+}
+.faq-list {
+  max-width:840px
 }
 
 /* Ruled lists */
@@ -988,14 +1019,14 @@ h3 {
 }
 
 /* FAQ */
-.faq-list {
+.faq-list,.workflow>.dev-notes {
   border-top:1px solid var(--rule)
 }
-.faq details {
+.faq details,.workflow>.dev-notes {
   border-bottom:1px solid var(--rule);
   padding:19px 0
 }
-.faq summary {
+.faq summary,.workflow>.dev-notes summary {
   list-style:none;
   cursor:pointer;
   font-size:18px;
@@ -1008,10 +1039,10 @@ h3 {
   gap:20px;
   text-wrap:balance
 }
-.faq summary::-webkit-details-marker {
+.faq summary::-webkit-details-marker,.workflow>.dev-notes summary::-webkit-details-marker {
   display:none
 }
-.faq summary:after {
+.faq summary:after,.workflow>.dev-notes summary:after {
   content:"";
   width:8px;
   height:8px;
@@ -1022,15 +1053,18 @@ h3 {
   margin-right:3px;
   transition:transform .18s cubic-bezier(.16,1,.3,1)
 }
-.faq details[open] summary:after {
+.faq details[open] summary:after,.workflow>.dev-notes[open] summary:after {
   transform:rotate(225deg)
 }
-.faq details p {
+.faq details p,.workflow .dev-notes p {
   max-width:var(--measure);
   color:var(--text-muted);
   line-height:1.65;
   font-size:16px;
   margin:16px 0 0
+}
+.workflow .dev-notes h3 {
+  margin:var(--s-5) 0 0
 }
 
 /* Footer */
@@ -1123,8 +1157,7 @@ h3 {
     margin-top:0
   }
   .status-table {
-    font-size:14px;
-    max-width:calc(12px + 16em + 31em + 40px)
+    font-size:14px
   }
   .status-row {
     grid-template-columns:12px minmax(180px,16em) minmax(0,1fr);
@@ -1189,7 +1222,7 @@ h3 {
   .bench-stage {
     min-height:320px
   }
-  .quickstart,.faq,.check-section,.doctor-section {
+  .check-section {
     grid-template-columns:1fr;
     gap:42px
   }
@@ -1329,10 +1362,13 @@ h3 {
     display:block
   }
 }
-@media(max-width:374px) {
+@media(max-width:620px) {
   .site-header nav {
     display:grid;
     grid-template-columns:1fr 1fr
+  }
+  .site-header nav a:first-child {
+    grid-column:1/-1
   }
 }
 
