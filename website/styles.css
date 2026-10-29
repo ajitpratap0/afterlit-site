@@ -80,10 +80,7 @@
   box-sizing:border-box
 }
 html {
-  scroll-behavior:smooth;
-  /* Anchor jumps and keyboard focus land clear of the sticky header
-     (WCAG 2.2 SC 2.4.11). Each value exceeds the header height. */
-  scroll-padding-top:112px
+  scroll-behavior:smooth
 }
 body {
   margin:0;
@@ -99,10 +96,11 @@ body {
 a {
   color:inherit;
   text-underline-offset:.2em;
-  text-decoration-thickness:1px
+  text-decoration-thickness:1px;
+  transition:text-decoration-color .15s ease-out
 }
 a:hover {
-  text-decoration-thickness:2px
+  text-decoration-color:var(--rust)
 }
 button,input {
   font:inherit
@@ -135,21 +133,14 @@ h1,h2,h3,p,li,dd,dt,summary,small,.button,.site-header nav a {
   outline-offset:4px
 }
 
-/* Header: sticky so the current-section underline stays in view. The paper fill
-   bleeds to the screen edges without widening the page. */
+/* Header */
 .site-header {
-  position:sticky;
-  top:0;
-  z-index:5;
   display:flex;
   align-items:center;
   justify-content:space-between;
   gap:var(--s-6);
   min-height:96px;
-  border-bottom:1px solid var(--rule-soft);
-  background:var(--paper);
-  box-shadow:0 0 0 100vmax var(--paper);
-  clip-path:inset(0 -100vmax)
+  border-bottom:1px solid var(--rule-soft)
 }
 .brand {
   display:inline-flex;
@@ -163,7 +154,8 @@ h1,h2,h3,p,li,dd,dt,summary,small,.button,.site-header nav a {
 }
 .brand svg {
   width:32px;
-  height:32px
+  height:32px;
+  color:var(--rust)
 }
 .accent,.footer-brand strong span {
   color:var(--rust)
@@ -180,18 +172,6 @@ h1,h2,h3,p,li,dd,dt,summary,small,.button,.site-header nav a {
   font-size:13px;
   font-weight:700;
   text-decoration:none
-}
-.site-header nav a:hover {
-  text-decoration:underline;
-  text-decoration-thickness:1px;
-  text-underline-offset:6px
-}
-/* Where you are: set by site.js as you read. No transition, so motion settings are unaffected. */
-.site-header nav a[aria-current=location] {
-  text-decoration:underline;
-  text-decoration-color:var(--ink);
-  text-decoration-thickness:2px;
-  text-underline-offset:6px
 }
 .badge,.readback-title,.art-bottom,.bench-top,.bench-foot,.range-ends,.terminal-head,.state-tag,.footer-bottom {
   font-family:var(--font-mono);
@@ -226,29 +206,22 @@ h1,h2,h3 {
   hyphens:auto
 }
 h1 {
-  font-size:clamp(36px,5vw,72px);
-  font-size:clamp(36px,8cqi,72px);
-  line-height:1.05;
-  letter-spacing:-.03em;
-  margin:0 0 var(--s-5);
-  max-width:15em;
-  hyphens:manual;
-  text-wrap:balance
+  font-size:clamp(48px,5.8vw,96px);
+  font-size:clamp(48px,13cqi,96px);
+  line-height:1;
+  letter-spacing:-.035em;
+  margin:0 0 var(--s-6)
 }
-
+h1 em {
+  font-weight:400;
+  color:var(--rust)
+}
 h2 {
   font-size:clamp(34px,3.5vw,58px);
   line-height:1.08;
   letter-spacing:-.03em;
   margin:0;
   text-wrap:balance
-}
-/* Read sections (doctor, practice run, status, FAQ) step down one size, so the hero,
-   today, the device check and the lamp preview carry the page. */
-h2.read-title {
-  font-size:clamp(28px,2.4vw,36px);
-  letter-spacing:-.02em;
-  line-height:1.15
 }
 h3 {
   font-size:clamp(25px,2vw,32px);
@@ -276,36 +249,12 @@ h3 {
   max-width:740px;
   container-type:inline-size
 }
-.hero-status {
-  max-width:var(--measure);
-  margin:0 0 var(--s-5);
-  padding-left:var(--s-4);
-  border-left:3px solid var(--status-pending);
-  font-size:18px;
-  line-height:1.55;
-  color:var(--ink)
-}
-.hero-status strong {
-  font-weight:700;
-  color:var(--status-pending-text)
-}
-
-/* The pitch opens the lede as its first sentence, so the hero keeps five tiers:
-   h1, status, lede, actions, note. */
-.hero-pitch {
-  font-weight:700;
-  color:var(--ink)
-}
-
-.hero .lede {
-  margin:0 0 var(--s-5)
-}
 .hero-actions {
   display:flex;
   align-items:center;
   gap:29px;
   flex-wrap:wrap;
-  margin:0 0 var(--s-6)
+  margin:var(--s-6) 0 var(--s-7)
 }
 .button {
   display:inline-flex;
@@ -330,50 +279,51 @@ h3 {
 .text-button {
   border-bottom:1px solid var(--ink)
 }
-/* The 52px min-height includes the border, so the thicker line shifts nothing */
-.text-button:hover {
-  border-bottom-width:2px
-}
 .hero-note {
   font-family:var(--font-body);
   font-size:13px;
   font-weight:700;
   line-height:1.6;
   color:var(--ink);
-  margin-bottom:0
+  margin-bottom:var(--s-3)
 }
 .hero-note span {
   white-space:nowrap
 }
-/* Plain spaces sit on both sides of the dot, so it stays centred between the phrases */
-.hero-note .note-sep {
-  color:var(--text-soft)
+.hero-note span[aria-hidden] {
+  margin-right:.45em;
+  color:var(--rust)
 }
-
-.hero-art {
+.hardware-note {
+  max-width:var(--measure);
   margin:0;
+  font-size:14px;
+  line-height:1.6;
+  color:var(--text-muted)
+}
+.hero-art {
   background:var(--paper-sunk);
   border:1px solid var(--rule-soft);
   min-width:0;
-  display:flex;
-  flex-direction:column;
+  aspect-ratio:1.04;
+  position:relative;
   overflow:hidden
 }
 .art-bottom {
+  position:absolute;
+  left:24px;
+  right:24px;
+  bottom:18px;
+  z-index:1;
   display:flex;
-  flex-wrap:wrap;
   justify-content:space-between;
-  gap:var(--s-2) var(--s-4);
-  border-top:1px solid var(--rule-soft);
-  font-size:12px;
-  font-weight:700;
-  color:var(--sage-text)
+  font-size:11px;
+  letter-spacing:.02em;
+  color:var(--text-on-bench)
 }
 .hero-art svg {
-  display:block;
   width:100%;
-  height:auto;
-  aspect-ratio:570/510
+  height:100%
 }
 .grid {
   stroke:var(--art-grid);
@@ -426,11 +376,7 @@ h3 {
   font-family:var(--font-mono);
   font-size:11px;
   letter-spacing:.05em;
-  fill:var(--sage-text);
-  stroke:var(--paper-sunk);
-  stroke-width:4px;
-  stroke-linejoin:round;
-  paint-order:stroke
+  fill:var(--text-on-bench)
 }
 .hero-art .signal {
   fill:var(--rust-text)
@@ -451,34 +397,14 @@ h3 {
   max-width:840px;
   margin-bottom:var(--s-7)
 }
-.head-row {
-  display:grid;
-  gap:var(--s-5);
-  max-width:none;
-  margin-bottom:var(--s-7)
-}
-.head-row>p {
-  margin:0;
-  max-width:var(--measure);
-  color:var(--text-muted);
-  font-size:16px;
-  line-height:1.7
-}
-@media(min-width:951px) {
-  .head-row {
-    grid-template-columns:minmax(0,7fr) minmax(0,5fr);
-    column-gap:clamp(32px,5vw,96px);
-    align-items:start
-  }
-}
-.problem p,.section-intro>p,.section-detail>p:not(.back-to-top),.run-outputs p,.workflow-intro {
+.problem p,.check-section>div:first-child>p,.doctor-section>div:first-child>p,.quickstart>div:first-child>p,.run-outputs p,.workflow-intro {
   max-width:var(--measure);
   margin:22px 0 0;
   color:var(--text-muted);
   font-size:16px;
   line-height:1.7
 }
-.today>*,.head-row>*,.hero>*,.problem>*,.problem>div>*,.check-section>*,.quickstart>*,.doctor-section>*,.faq>*,.workbench>*,.run-outputs>*,.section-heading,.status-row>* {
+.hero>*,.problem>*,.problem>div>*,.check-section>*,.quickstart>*,.doctor-section>*,.faq>*,.workbench>*,.run-outputs>*,.section-heading,.status-row>* {
   min-width:0
 }
 
@@ -490,23 +416,12 @@ h3 {
   max-width:800px
 }
 
-/* Check and doctor: intro, terminal, then the legend that explains it.
-   Phones read them in that order; wide screens put the terminal beside both. */
-.check-section,.doctor-section {
+.quickstart,.faq,.check-section,.doctor-section {
   display:grid;
   grid-template-columns:.9fr 1.1fr;
-  grid-template-rows:auto 1fr;
-  column-gap:7vw;
-  row-gap:0
+  gap:7vw
 }
-.check-section>.terminal,.doctor-section>.terminal {
-  grid-column:2;
-  grid-row:1 / span 2
-}
-.section-intro,.section-detail {
-  grid-column:1
-}
-.check-section h2,.doctor-section h2 {
+.quickstart h2,.faq h2,.check-section h2,.doctor-section h2 {
   max-width:520px
 }
 .check-section>.terminal,.doctor-section>.terminal {
@@ -523,7 +438,6 @@ h3 {
 .artifact-list li {
   display:grid;
   grid-template-columns:1fr;
-  align-content:start;
   padding:22px 0;
   border-bottom:1px solid var(--rule)
 }
@@ -541,33 +455,8 @@ h3 {
 .outcome-list {
   margin-top:var(--s-6)
 }
-.outcome-list li {
-  padding:var(--s-4) 0
-}
-.section-detail>.confidence {
+.check-section .outcome-list+p {
   margin-top:var(--s-6)
-}
-.today-list li {
-  padding:var(--s-4) 0 var(--s-5)
-}
-.today-list strong {
-  font-size:18px;
-  line-height:1.35
-}
-.today-list small {
-  font-size:16px;
-  line-height:1.65;
-  margin-top:var(--s-2)
-}
-@media(min-width:951px) {
-  .today-list {
-    display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    column-gap:var(--s-6)
-  }
-  .today-list li {
-    border-bottom:0
-  }
 }
 .confidence {
   margin:var(--s-3) 0 0;
@@ -608,15 +497,12 @@ h3 {
 .steps article:not(:first-child) {
   padding-left:25px
 }
-.steps article:last-of-type {
+.steps article:last-child {
   border-right:0
 }
 /* The ordinal is part of the step heading, set in the heading's own face */
 .number {
-  font-family:var(--font-display);
-  font-weight:400;
-  font-variant-numeric:lining-nums tabular-nums;
-  color:var(--text-soft);
+  color:var(--rust);
   margin-right:.15em
 }
 .steps h3 {
@@ -628,74 +514,48 @@ h3 {
   line-height:1.65;
   max-width:34em
 }
+.workflow-intro {
+  margin-top:22px
+}
 .run-outputs {
   margin-top:var(--s-8)
 }
 .run-outputs h3 {
   margin:0
 }
-.run-outputs h3+p {
-  margin-top:var(--s-3)
-}
 .run-outputs .artifact-list {
   margin-top:var(--s-5)
 }
-@media(min-width:621px) {
-  .run-outputs .artifact-list {
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    column-gap:var(--s-5)
-  }
-}
-@media(min-width:951px) {
-  .run-outputs .artifact-list {
-    grid-template-columns:repeat(4,minmax(0,1fr))
-  }
-}
-/* Step 03's safety detail: folded under its own card, so the card reads in one plain sentence */
-.step-notes {
-  margin:0 0 var(--s-4);
-  border-top:1px solid var(--rule)
-}
-.step-notes summary {
-  list-style:none;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:var(--s-3);
-  min-height:var(--tap);
-  cursor:pointer;
-  color:var(--ink);
+.method-note {
+  margin:var(--s-6) 0 0;
+  padding:0;
+  max-width:var(--measure);
   font-size:14px;
-  font-weight:700
+  line-height:1.7;
+  color:var(--text-muted)
 }
-.step-notes summary::-webkit-details-marker {
-  display:none
-}
-.step-notes summary:after {
-  content:"";
-  width:7px;
-  height:7px;
-  flex-shrink:0;
-  border-right:2px solid var(--ink);
-  border-bottom:2px solid var(--ink);
-  transform:rotate(45deg);
-  margin-right:3px;
-  transition:transform .18s cubic-bezier(.16,1,.3,1)
-}
-.step-notes[open] summary:after {
-  transform:rotate(225deg)
-}
-.step-notes summary:focus-visible {
-  outline:var(--focus-ring);
-  outline-offset:2px
-}
-.steps .step-notes p {
-  margin:var(--s-1) 0 var(--s-2)
+.method-note strong {
+  color:var(--ink)
 }
 
-/* Lamp preview workbench */
-
+/* Browser preview workbench */
+.demo-heading {
+  max-width:none;
+  display:flex;
+  align-items:end;
+  justify-content:space-between;
+  gap:40px
+}
+.demo-heading h2 {
+  max-width:700px
+}
+.demo-heading>p {
+  max-width:290px;
+  color:var(--text-muted);
+  line-height:1.6;
+  font-size:14px;
+  margin:0
+}
 .workbench {
   display:grid;
   grid-template-columns:1.05fr .95fr;
@@ -820,32 +680,11 @@ h3 {
   padding:clamp(28px,4vw,56px);
   background:var(--paper-raised)
 }
-/* The heading and intro sit above the controls on wide screens and above the lamp
-   when the workbench stacks. */
-.bench-intro {
-  padding:clamp(28px,4vw,56px) clamp(28px,4vw,56px) 0;
-  background:var(--paper-raised)
-}
-.bench-intro+.bench-visual+.bench-controls {
-  padding-top:var(--s-6)
-}
-@media(min-width:951px) {
-  .workbench {
-    grid-template-rows:auto 1fr
-  }
-  .bench-visual {
-    grid-column:1;
-    grid-row:1 / span 2
-  }
-  .bench-intro,.bench-controls {
-    grid-column:2
-  }
-}
-.bench-intro h3 {
+.bench-controls h3 {
   font-size:clamp(28px,2.4vw,36px);
   margin-bottom:12px
 }
-.bench-intro>p {
+.bench-controls>p:not(.no-js-note):not(.evidence-note) {
   color:var(--text-muted);
   line-height:1.55;
   max-width:390px;
@@ -854,7 +693,7 @@ h3 {
 .bench-controls fieldset {
   border:0;
   padding:0;
-  margin:0
+  margin:40px 0 0
 }
 .bench-controls fieldset:disabled {
   opacity:.55
@@ -866,12 +705,9 @@ h3 {
   font-size:13px;
   font-weight:700
 }
-.control-heading p {
-  margin:0
-}
-.control-heading output,.control-value {
+.control-heading output {
   font-family:var(--font-mono);
-  color:var(--ink);
+  color:var(--rust);
   font-variant-numeric:tabular-nums
 }
 .bench-controls input[type=range] {
@@ -879,7 +715,7 @@ h3 {
   width:100%;
   height:var(--tap);
   margin:5px 0 0;
-  accent-color:var(--ink);
+  accent-color:var(--rust);
   cursor:pointer
 }
 .range-ends {
@@ -895,9 +731,6 @@ h3 {
   font-size:13px;
   font-weight:700
 }
-.color-control .control-heading {
-  margin-bottom:var(--s-3)
-}
 .swatches {
   display:flex;
   flex-wrap:wrap;
@@ -908,34 +741,16 @@ h3 {
   width:var(--tap);
   border:1px solid var(--swatch-line);
   border-radius:50%;
-  cursor:pointer;
-  outline:2px solid transparent;
-  outline-offset:0;
-  transition:outline-offset .1s ease-out,outline-color .1s ease-out
-}
-.js-ready .swatch:not(:disabled):not([aria-pressed=true]):not(:focus-visible):hover {
-  outline-color:var(--swatch-line);
-  outline-offset:2px
+  cursor:pointer
 }
 .swatch[aria-pressed=true] {
   border:2px solid var(--ink);
   outline:2px solid var(--ink);
-  outline-offset:4px;
-  transition-duration:.18s;
-  transition-timing-function:cubic-bezier(.16,1,.3,1)
-}
-.js-ready .swatch:disabled {
-  opacity:.35;
-  cursor:not-allowed
-}
-.js-ready .swatch:disabled[aria-pressed=true] {
-  border-color:var(--swatch-line);
-  outline-color:var(--swatch-line)
+  outline-offset:4px
 }
 .swatch:focus-visible {
   outline:var(--focus-ring);
-  outline-offset:5px;
-  transition:none
+  outline-offset:5px
 }
 .swatch-warm {
   background:var(--tone-warm)
@@ -948,19 +763,6 @@ h3 {
 }
 .swatch-blue {
   background:var(--tone-blue)
-}
-.js-ready .color-off-note {
-  visibility:hidden
-}
-.js-ready .color-off-note.is-shown {
-  visibility:visible
-}
-.color-control .color-off-note {
-  font-size:12px;
-  font-weight:400;
-  line-height:1.55;
-  color:var(--text-muted);
-  margin:var(--s-3) 0 0
 }
 .no-js-note {
   font-size:12px;
@@ -976,44 +778,20 @@ h3 {
   padding:18px 21px
 }
 .readback-title {
-  margin:0;
-  font-size:12px;
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
   color:var(--sage-text-soft);
   font-weight:700
 }
-.readback-step {
-  margin-top:var(--s-4)
-}
-.readback-step+.readback-step {
-  border-top:1px solid var(--sage-line);
-  padding-top:var(--s-4)
-}
-.readback-label {
-  margin:0;
-  display:flex;
-  align-items:baseline;
-  gap:var(--s-2);
-  font-size:12px;
-  font-weight:700;
-  color:var(--sage-text)
-}
-.readback-num {
-  font-family:var(--font-mono);
-  font-size:11px;
-  color:var(--sage-text-soft);
-  font-variant-numeric:tabular-nums
-}
-.readback-dot {
-  margin-left:auto;
+.readback-title span:last-child {
   display:inline-block;
   font-size:14px;
-  line-height:1;
-  color:var(--status-ready-text)
+  color:var(--status-ready)
 }
-.readback.is-confirmed .readback-dot {
+.readback.is-confirmed .readback-title span:last-child {
   animation:readback-confirm .6s cubic-bezier(.16,1,.3,1)
 }
-
 @keyframes readback-confirm {
   from {
     opacity:.2;
@@ -1027,7 +805,7 @@ h3 {
 .readback dl {
   display:flex;
   gap:15px;
-  margin:var(--s-2) 0 0
+  margin:22px 0 0
 }
 .readback dl div {
   flex:1;
@@ -1037,44 +815,11 @@ h3 {
   font-size:12px;
   color:var(--sage-text-soft)
 }
-.readback dl div:last-child {
-  flex:1.6
-}
 .readback dd {
-  position:relative;
-  width:fit-content;
-  max-width:100%;
   margin:7px 0 0;
   font-weight:700;
   font-size:14px;
   font-variant-numeric:tabular-nums
-}
-.readback .readback-requested dd {
-  font-weight:400;
-  color:var(--text-muted)
-}
-/* Pencil stroke under each value the last control change rewrote. The text is already
-   written; the stroke is drawn, not faded, and stays as the record of the latest change. */
-.readback dd:after {
-  content:"";
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:-5px;
-  height:2px;
-  background:var(--status-ready);
-  transform:scaleX(0);
-  transform-origin:left center;
-  pointer-events:none
-}
-.readback dd.is-fresh:after {
-  transform:none;
-  animation:readback-stroke .5s cubic-bezier(.16,1,.3,1)
-}
-@keyframes readback-stroke {
-  from {
-    transform:scaleX(0)
-  }
 }
 .evidence-note {
   font-size:12px;
@@ -1085,50 +830,21 @@ h3 {
 
 /* Status */
 .status-table {
-  display:grid;
-  grid-template-columns:minmax(0,1fr);
-  column-gap:var(--s-6)
-}
-.status-section {
-  padding-bottom:0
+  border-top:1px solid var(--rule)
 }
 .status-row {
   display:grid;
-  grid-template-columns:12px minmax(0,1fr);
-  grid-template-areas:"dot label" ". tag" ". desc";
-  gap:var(--s-2) var(--s-4);
-  align-content:start;
-  padding:var(--s-5) 0;
-  border-top:1px solid var(--rule);
+  grid-template-columns:12px minmax(150px,1fr) minmax(220px,1.5fr);
+  gap:20px;
+  align-items:center;
+  padding:22px 0;
+  border-bottom:1px solid var(--rule);
   font-size:14px
 }
-.status-row>.status-dot {
-  grid-area:dot;
-  margin-top:5px
-}
-.status-row>strong {
-  grid-area:label;
-  font-size:16px
-}
-.status-row>.state-tag {
-  grid-area:tag
-}
 .status-row>span:nth-child(3) {
-  grid-area:desc;
   max-width:var(--measure);
   color:var(--text-muted);
-  line-height:1.55;
-  margin-top:var(--s-1)
-}
-@media(min-width:761px) {
-  .status-table {
-    grid-template-columns:repeat(2,minmax(0,1fr))
-  }
-}
-@media(min-width:951px) {
-  .status-table {
-    grid-template-columns:repeat(3,minmax(0,1fr))
-  }
+  line-height:1.5
 }
 .status-dot {
   width:8px;
@@ -1145,15 +861,20 @@ h3 {
   background:var(--status-future)
 }
 .state-tag {
+  grid-column:2/-1;
   font-size:11px;
   text-transform:uppercase;
-  color:var(--text-soft)
+  color:var(--text-soft);
+  text-align:left
 }
 .status-dot.ready~.state-tag {
   color:var(--status-ready-text)
 }
 .status-dot.pending~.state-tag {
   color:var(--status-pending-text)
+}
+.status-section>.method-note {
+  margin-top:var(--s-5)
 }
 
 /* Terminal */
@@ -1265,64 +986,9 @@ h3 {
   font-size:14px;
   line-height:1.6
 }
-.section-detail .dev-notes {
-  margin-top:var(--s-5);
-  border-top:1px solid var(--rule);
-  border-bottom:1px solid var(--rule);
-  padding:var(--s-1) 0
-}
-.section-detail .dev-notes summary {
-  list-style:none;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:20px;
-  min-height:var(--tap);
-  cursor:pointer;
-  color:var(--ink);
-  font-size:15px;
-  font-weight:700
-}
-.section-detail .dev-notes summary::-webkit-details-marker {
-  display:none
-}
-.section-detail .dev-notes summary:after {
-  content:"";
-  width:7px;
-  height:7px;
-  flex-shrink:0;
-  border-right:2px solid var(--ink);
-  border-bottom:2px solid var(--ink);
-  transform:rotate(45deg);
-  margin-right:3px;
-  transition:transform .18s cubic-bezier(.16,1,.3,1)
-}
-.section-detail .dev-notes[open] summary:after {
-  transform:rotate(225deg)
-}
-.section-detail .dev-notes summary:focus-visible {
-  outline:var(--focus-ring);
-  outline-offset:2px
-}
-.section-detail .dev-notes .confidence {
-  margin:var(--s-2) 0 var(--s-4)
-}
-.section-detail .dev-notes p {
-  max-width:var(--measure);
-  margin:var(--s-2) 0 var(--s-4);
-  color:var(--text-muted);
-  font-size:15px;
-  line-height:1.6
-}
 
 /* FAQ */
-.faq>div:first-child {
-  margin-bottom:var(--s-7)
-}
 .faq-list {
-  max-width:48rem
-}
-.faq-group h3+details {
   border-top:1px solid var(--rule)
 }
 .faq details {
@@ -1350,8 +1016,8 @@ h3 {
   width:8px;
   height:8px;
   flex-shrink:0;
-  border-right:2px solid var(--ink);
-  border-bottom:2px solid var(--ink);
+  border-right:2px solid var(--rust);
+  border-bottom:2px solid var(--rust);
   transform:rotate(45deg);
   margin-right:3px;
   transition:transform .18s cubic-bezier(.16,1,.3,1)
@@ -1365,18 +1031,6 @@ h3 {
   line-height:1.65;
   font-size:16px;
   margin:16px 0 0
-}
-
-/* Back to top: once, after the last question, before the footer */
-.back-to-top {
-  margin:var(--s-6) 0 0
-}
-.back-to-top a {
-  display:inline-flex;
-  align-items:center;
-  min-height:var(--tap);
-  font-size:14px;
-  font-weight:700
 }
 
 /* Footer */
@@ -1412,9 +1066,6 @@ h3 {
   border-bottom:1px solid var(--sage-line);
   padding-bottom:5px
 }
-.footer-links a:hover {
-  border-bottom-color:var(--ink)
-}
 .footer-bottom {
   grid-column:1/-1;
   display:flex;
@@ -1448,18 +1099,10 @@ h3 {
   .problem>div {
     display:grid;
     grid-template-columns:minmax(0,7fr) minmax(0,5fr);
-    column-gap:clamp(32px,5vw,96px);
-    row-gap:var(--s-6)
-  }
-  /* The heading and its paragraph share one row; the paragraph sits level with the
-     heading's last line, so no empty band opens between them. */
-  .problem>div>p {
-    grid-column:2;
-    align-self:end
+    gap:clamp(32px,5vw,96px);
+    align-items:end
   }
   .problem h2 {
-    grid-column:1;
-    max-width:15em;
     font-size:clamp(40px, 3.6vw + 8px, 64px);
     letter-spacing:-.035em;
     line-height:1.04
@@ -1467,10 +1110,43 @@ h3 {
   .problem p {
     margin:0
   }
-  /* Below the sticky header */
-  .doctor-section>.terminal {
+  .check-section>.terminal,.doctor-section>.terminal {
     position:sticky;
-    top:121px
+    top:var(--s-5)
+  }
+  .run-outputs {
+    display:grid;
+    grid-template-columns:.9fr 1.1fr;
+    gap:7vw
+  }
+  .run-outputs .artifact-list {
+    margin-top:0
+  }
+  .status-table {
+    font-size:14px;
+    max-width:calc(12px + 16em + 31em + 40px)
+  }
+  .status-row {
+    grid-template-columns:12px minmax(180px,16em) minmax(0,1fr);
+    grid-template-rows:auto 1fr;
+    grid-template-areas:"dot label desc" ". tag desc";
+    align-items:start;
+    row-gap:var(--s-1)
+  }
+  .status-row>.status-dot {
+    grid-area:dot;
+    margin-top:5px
+  }
+  .status-row>strong {
+    grid-area:label
+  }
+  .status-row>span:nth-child(3) {
+    grid-area:desc;
+    max-width:var(--measure)
+  }
+  .status-row>.state-tag {
+    grid-area:tag;
+    text-align:left
   }
 }
 /* Hero diagram labels never render below 11px in the two-column hero */
@@ -1487,18 +1163,19 @@ h3 {
     grid-template-columns:1fr;
     padding:65px 0
   }
-
+  h1 {
+    font-size:clamp(48px,6vw,58px);
+    font-size:clamp(48px,8cqi,58px)
+  }
   .hero-art {
-    max-width:650px
+    max-width:650px;
+    aspect-ratio:1.25
   }
   .hero-art text {
     font-size:13px
   }
   .steps {
     grid-template-columns:repeat(2,1fr)
-  }
-  .steps article:nth-child(odd) {
-    padding-left:0
   }
   .steps article:nth-child(2) {
     border-right:0
@@ -1512,23 +1189,17 @@ h3 {
   .bench-stage {
     min-height:320px
   }
-  .check-section,.doctor-section {
+  .quickstart,.faq,.check-section,.doctor-section {
     grid-template-columns:1fr;
-    grid-template-rows:none;
-    row-gap:42px
+    gap:42px
   }
-  .check-section>.terminal,.doctor-section>.terminal,.section-intro,.section-detail {
-    grid-column:auto;
-    grid-row:auto
+  .run-outputs h3+p {
+    margin-top:12px
   }
-  .section-detail>.outcome-list,.section-detail>.confidence {
-    margin-top:0
-  }
-
 }
 
 /* Narrow header: the nav takes its own row so no link wraps alone */
-@media(max-width:900px) {
+@media(max-width:760px) {
   .site-header {
     min-height:0;
     padding:20px 0;
@@ -1544,9 +1215,6 @@ h3 {
   .badge {
     margin-left:auto
   }
-  html {
-    scroll-padding-top:calc(var(--s-10) + var(--s-4))
-  }
 }
 
 /* Phone */
@@ -1555,8 +1223,14 @@ h3 {
     padding:0 22px
   }
   .hero {
-    padding:var(--s-6) 0 var(--s-7);
-    gap:var(--s-6)
+    padding:48px 0 64px;
+    gap:48px
+  }
+  h1 {
+    text-wrap:balance
+  }
+  h1 br {
+    display:none
   }
   .lede {
     font-size:16px
@@ -1566,13 +1240,15 @@ h3 {
     flex-direction:column;
     gap:2px
   }
-  .hero-note .note-sep {
+  .hero-note span[aria-hidden] {
     display:none
   }
   .hero-actions {
     gap:20px
   }
-
+  .hero-art {
+    aspect-ratio:1
+  }
   .hero-art text {
     font-size:24px;
     letter-spacing:.02em
@@ -1587,18 +1263,16 @@ h3 {
     transform:translateY(10px)
   }
   .art-bottom {
-    font-size:11px
+    font-size:11px;
+    left:18px;
+    right:18px
   }
   .bench-top {
     flex-wrap:wrap
   }
   .terminal pre {
     font-size:12px;
-    padding:22px 16px 10px;
-    /* A focused sample must fit below the sticky header (WCAG 2.2 SC 2.4.11);
-       taller output scrolls inside its labelled, focusable region. */
-    max-height:calc(100svh - var(--s-10) - var(--s-7));
-    overflow-y:auto
+    padding:22px 16px 10px
   }
   .terminal>p {
     padding:18px 16px;
@@ -1618,17 +1292,28 @@ h3 {
     padding:25px 0 20px;
     min-height:0
   }
-
+  .demo-heading {
+    display:block
+  }
+  .demo-heading>p {
+    margin-top:22px
+  }
   .bench-visual {
     padding:20px
   }
   .bench-controls {
     padding:28px 23px
   }
-  .bench-intro {
-    padding:28px 23px var(--s-5)
+  .status-row {
+    grid-template-columns:12px 1fr;
+    gap:11px 16px
   }
-
+  .status-row>span:nth-child(3),.status-row>.state-tag {
+    grid-column:2
+  }
+  .status-row>.state-tag {
+    margin-top:2px
+  }
   .site-footer {
     grid-template-columns:1fr;
     gap:24px
@@ -1644,74 +1329,10 @@ h3 {
     display:block
   }
 }
-/* Phone nav: the five links wrap onto two rows so every label is visible at load.
-   Links keep their whole label on one line; the row's first link lines up with the page text.
-   The two-row header would hold a large share of a small screen, so it scrolls away with
-   the page instead of sticking, and anchors need only a small inset. */
-@media(max-width:620px) {
-  html {
-    scroll-padding-top:var(--s-4)
-  }
-  .site-header {
-    position:static;
-    padding:var(--s-3) 0 var(--s-1);
-    gap:var(--s-2) var(--s-4)
-  }
+@media(max-width:374px) {
   .site-header nav {
-    width:calc(100% + var(--s-4));
-    gap:0;
-    margin:0 calc(-1 * var(--s-2))
-  }
-  .site-header nav a {
-    flex:none;
-    min-height:calc(var(--tap) - var(--s-1));
-    padding:0 var(--s-2);
-    white-space:nowrap
-  }
-  .site-header nav a:focus-visible {
-    outline-offset:-3px
-  }
-  h1 {
-    font-size:clamp(28px,9cqi,34px);
-    line-height:1.08;
-    letter-spacing:-.02em;
-    margin-bottom:var(--s-4)
-  }
-  .readback {
-    padding:var(--s-4)
-  }
-  .readback dl {
     display:grid;
-    grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,2fr);
-    gap:var(--s-3)
-  }
-}
-
-/* Hero focal moment: the local wire is inked once from computer to lamp, then the
-   lamp's light spreads out. The resting state is fully drawn, so nothing waits
-   on the animation; it runs once and never loops. */
-@media(prefers-reduced-motion:no-preference) {
-  .hero-art .wire {
-    stroke-dasharray:1;
-    animation:wire-ink .7s cubic-bezier(.16,1,.3,1) .15s both
-  }
-  .hero-art .halo {
-    transform-box:fill-box;
-    transform-origin:center;
-    animation:halo-settle .6s cubic-bezier(.16,1,.3,1) .55s backwards
-  }
-}
-@keyframes wire-ink {
-  from {
-    stroke-dashoffset:1
-  }
-  to {
-    stroke-dashoffset:0
-  }
-}
-@keyframes halo-settle {
-  from {
-    transform:scale(.8)
+    grid-template-columns:1fr 1fr
   }
 }
 
@@ -1727,14 +1348,8 @@ h3 {
   .demo-lamp {
     transition:none
   }
-  .readback.is-confirmed .readback-dot {
+  .readback.is-confirmed .readback-title span:last-child {
     animation:none
-  }
-  .readback dd.is-fresh:after {
-    animation:none
-  }
-  .swatch {
-    transition:none
   }
 }
 
@@ -1750,14 +1365,6 @@ h3 {
   .swatch[aria-pressed=true] {
     border-color:Highlight;
     outline-color:Highlight
-  }
-  .js-ready .swatch:disabled,.js-ready .swatch:disabled[aria-pressed=true] {
-    border-color:GrayText;
-    outline-color:GrayText
-  }
-  .readback dd:after {
-    forced-color-adjust:none;
-    background:CanvasText
   }
 }
 
@@ -1775,8 +1382,7 @@ h3 {
   }
   .terminal pre {
     white-space:pre-wrap;
-    overflow:visible;
-    max-height:none
+    overflow:visible
   }
   .terminal,.status-row,.artifact-list li,.steps article,details {
     break-inside:avoid
@@ -1804,193 +1410,5 @@ h3 {
   details::details-content {
     content-visibility:visible;
     display:block
-  }
-}
-
-/* Section ends: the next section's rule is the divider, so lists drop their last bottom rule */
-.today-list li:last-child,.run-outputs .artifact-list li:last-child {
-  border-bottom:0
-}
-@media(min-width:621px) and (max-width:950px) {
-  .run-outputs .artifact-list li:nth-last-child(2) {
-    border-bottom:0
-  }
-}
-@media(min-width:951px) {
-  .run-outputs .artifact-list li {
-    border-bottom:0
-  }
-}
-
-/* Plain-language takeaway: the first line of each command-line section */
-.section-intro>p.takeaway,.head-copy>p.takeaway {
-  color:var(--ink);
-  font-size:18px;
-  line-height:1.55
-}
-.head-copy>p {
-  margin:0;
-  max-width:var(--measure);
-  color:var(--text-muted);
-  font-size:16px;
-  line-height:1.7
-}
-.head-copy>p+p {
-  margin-top:var(--s-3)
-}
-.section-detail>p+.confidence {
-  margin-top:var(--s-3)
-}
-.outcome-list small a {
-  color:var(--ink)
-}
-
-/* Reset returns the browser-only lamp to its starting state */
-.reset-button {
-  display:inline-flex;
-  align-items:center;
-  min-height:var(--tap);
-  margin-top:var(--s-5);
-  padding:0;
-  border:0;
-  border-bottom:1px solid var(--ink);
-  background:none;
-  color:var(--ink);
-  font-size:14px;
-  font-weight:700;
-  cursor:pointer
-}
-.reset-button:hover {
-  border-bottom-width:2px
-}
-fieldset:disabled .reset-button {
-  cursor:not-allowed
-}
-
-/* FAQ in two small groups, in the order a visitor asks */
-.faq-group+.faq-group {
-  margin-top:var(--s-7)
-}
-.faq-group h3 {
-  font-size:clamp(22px,1.6vw + 8px,28px);
-  margin:var(--s-5) 0 var(--s-3)
-}
-
-/* Narrow lamp preview: heading and intro, then the lamp, then the readback directly
-   under it, then the controls, so a change and its reported state share one screen.
-   The readback holds no focusable element, so keyboard order is unaffected. */
-@media(max-width:950px) {
-  .bench-controls {
-    display:flex;
-    flex-direction:column
-  }
-  .bench-controls>.readback {
-    order:-1;
-    margin-top:0
-  }
-  .bench-intro+.bench-visual+.bench-controls {
-    padding-top:var(--s-4)
-  }
-  .bench-intro {
-    padding-bottom:var(--s-5)
-  }
-  .bench-controls fieldset {
-    margin-top:var(--s-5)
-  }
-}
-@media(max-width:620px) {
-  .hero-art svg {
-    aspect-ratio:570/420
-  }
-  .bench-stage {
-    min-height:0;
-    padding:var(--s-2) 0
-  }
-  .demo-lamp {
-    transform:scale(.62);
-    margin:-59px 0
-  }
-}
-
-/* The hero diagram is a figure. The picture keeps its one label; the strip under it is
-   a visible caption that links to the contributor path it names.
-   One caption, one link: a single underlined sentence, not a row of tab-like labels */
-.art-path {
-  display:flex;
-  align-items:center;
-  min-height:var(--tap);
-  padding:var(--s-3) var(--s-5);
-  color:var(--ink);
-  letter-spacing:.02em;
-  text-decoration:underline;
-  text-decoration-thickness:1px;
-  text-underline-offset:.3em;
-  text-wrap:balance
-}
-.art-path:hover {
-  text-decoration-thickness:2px
-}
-.art-path:focus-visible {
-  outline-offset:-3px
-}
-@media(max-width:620px) {
-  .art-path {
-    padding:var(--s-3) var(--s-4)
-  }
-}
-
-/* Lamp preview: no split header. The heading and one line lead; the workbench follows. */
-.demo-section .section-heading>p {
-  max-width:var(--measure);
-  margin:var(--s-4) 0 0;
-  color:var(--text-muted);
-  font-size:16px;
-  line-height:1.7
-}
-
-/* In-copy links in the today list read as ink links */
-.today-list small a {
-  color:var(--ink)
-}
-
-/* Terminal label: "EXAMPLE OUTPUT ·" and "PRIVATE SOURCE ONLY" each stay whole, so a
-   narrow panel breaks only at the dot */
-.head-label>span {
-  white-space:nowrap
-}
-
-/* Device check on wide screens: intro beside the terminal, then the four answers and the
-   confidence legend run across the full width beneath both, so neither column ends early. */
-@media(min-width:951px) {
-  .check-section {
-    grid-template-rows:auto auto
-  }
-  .check-section>.terminal {
-    grid-row:1
-  }
-  .check-section>.section-detail {
-    grid-column:1 / -1;
-    display:grid;
-    grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
-    column-gap:7vw;
-    align-items:start;
-    margin-top:var(--s-7)
-  }
-  .check-section .outcome-list {
-    grid-column:1 / -1;
-    display:grid;
-    grid-template-columns:repeat(4,minmax(0,1fr));
-    column-gap:var(--s-6);
-    margin-top:0
-  }
-  .check-section .outcome-list li {
-    border-bottom:0
-  }
-  .check-section .section-detail>p {
-    grid-column:1
-  }
-  .check-section .section-detail>.confidence {
-    grid-column:2;
-    margin-top:22px
   }
 }
