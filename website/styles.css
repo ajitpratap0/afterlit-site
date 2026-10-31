@@ -442,12 +442,22 @@ h3 {
   display:grid;
   gap:var(--s-2);
   margin:var(--s-4) 0 0;
-  padding-left:var(--s-5);
-  font-size:14px;
+  padding:0;
+  list-style:none;
+  counter-reset:today;
+  font-size:15px;
   line-height:1.55
 }
-.today li::marker {
-  color:var(--rust)
+.today li {
+  counter-increment:today;
+  display:grid;
+  grid-template-columns:2ch minmax(0,1fr);
+  gap:var(--s-2)
+}
+.today li::before {
+  content:counter(today) ".";
+  color:var(--rust);
+  font-weight:700
 }
 .status-section .section-heading,.workflow .section-heading {
   margin-bottom:var(--s-5)
@@ -457,6 +467,15 @@ h3 {
 }
 .faq-list {
   max-width:840px
+}
+.workflow,.status-section {
+  padding-bottom:0
+}
+.workflow+.section-rule,.status-section+.section-rule {
+  border-top:0
+}
+.faq {
+  padding-bottom:var(--s-8)
 }
 
 /* Ruled lists */
@@ -570,22 +589,12 @@ h3 {
 }
 
 /* Browser preview workbench */
-.demo-heading {
-  max-width:none;
-  display:flex;
-  align-items:end;
-  justify-content:space-between;
-  gap:40px
-}
-.demo-heading h2 {
-  max-width:700px
-}
 .demo-heading>p {
-  max-width:290px;
+  max-width:var(--measure);
   color:var(--text-muted);
-  line-height:1.6;
-  font-size:14px;
-  margin:0
+  line-height:1.7;
+  font-size:16px;
+  margin:22px 0 0
 }
 .workbench {
   display:grid;
@@ -1156,6 +1165,14 @@ h3 {
   .run-outputs .artifact-list {
     margin-top:0
   }
+  .today ol {
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:var(--s-6)
+  }
+  .today li {
+    border-top:1px solid var(--rule);
+    padding-top:var(--s-3)
+  }
   .status-table {
     font-size:14px
   }
@@ -1232,7 +1249,7 @@ h3 {
 }
 
 /* Narrow header: the nav takes its own row so no link wraps alone */
-@media(max-width:760px) {
+@media(max-width:950px) {
   .site-header {
     min-height:0;
     padding:20px 0;
@@ -1325,12 +1342,6 @@ h3 {
     padding:25px 0 20px;
     min-height:0
   }
-  .demo-heading {
-    display:block
-  }
-  .demo-heading>p {
-    margin-top:22px
-  }
   .bench-visual {
     padding:20px
   }
@@ -1363,12 +1374,14 @@ h3 {
   }
 }
 @media(max-width:620px) {
-  .site-header nav {
-    display:grid;
-    grid-template-columns:1fr 1fr
+  /* Two even rows: a zero-height flex break after the third link */
+  .site-header nav::before {
+    content:"";
+    order:2;
+    flex-basis:100%
   }
-  .site-header nav a:first-child {
-    grid-column:1/-1
+  .site-header nav a:nth-child(n+4) {
+    order:3
   }
 }
 
