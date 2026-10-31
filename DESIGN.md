@@ -292,7 +292,7 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 ## Layout
 
 - **Shell:** max 1560px wide; side gutter clamp(24px,5.5vw,96px), 22px at 620px and below.
-- **Section rhythm:** sections are separated by a 1px --rule-soft line with padding var(--section-pad), clamp(44px, 4vw + 24px, 84px), roughly a third less than before. The Today band uses 32px vertical padding.
+- **Section rhythm:** sections are separated by a 1px --rule-soft line with padding var(--section-pad), clamp(44px, 4vw + 24px, 84px), roughly a third less than before. The Today band uses 32px vertical padding. Sections that end in a ruled list (contributors, status) drop their bottom padding, and the next section drops its top rule, so the list's last rule closes the section instead of stacking a second line under it. The FAQ ends with 64px before the footer's ink rule.
 - **Spacing scale:** 4, 8, 12, 16, 24, 32, 48, 64, 96, 128 (--s-1 to --s-10).
 - **Content sections:** device check keeps a two-column split (.9fr / 1.1fr), with its terminal sticky (top 24px) at 951px and above. Today, contributors, status and FAQ follow a single-column reading order; the FAQ list is capped at 840px.
 - **Hero:** splits 1.05fr / .95fr, with the diagram on the right.
@@ -309,8 +309,8 @@ The palette is warm paper neutrals and navy ink, with one burnt-rust accent and 
 - **Breakpoints:**
   - 951 to 1439px: hero SVG labels upsized to 17 viewBox units so they never render below 11px.
   - 950px: the device-check split and workbench stack; hero SVG labels use 13 units.
-  - 760px: the nav takes its own row with a 16px gap, so no link wraps alone.
-  - 620px: status rows stack; the nav becomes a two-column grid with Today spanning the first row.
+  - 950px: the nav also takes its own row with a 16px gap, so it never squeezes beside the wordmark.
+  - 620px: status rows stack; the nav becomes two rows (Today, Device check, Preview / For contributors, Status) via a zero-height flex break, so no link sits alone.
 - **Must hold:**
   - No horizontal overflow at 320px, including under translation expansion and the WCAG 1.4.12 text-spacing override. Grid children set min-width:0, text sets overflow-wrap:break-word, and headings use hyphens:auto.
   - Terminal lines wrap instead of scrolling.
@@ -356,7 +356,7 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 ### Hero note, status line and Today band
 - **Hero note:** body sans, 13px bold ink, sentence case. From 621px the three trust facts run inline with small rust middots; each fact is nowrap and each middot is glued to the fact before it with a no-break space, so no wrapped line starts with "·". Below 621px the middots hide and the facts stack one per line.
 - **Hardware note:** a 14px bold ink status line directly under the lede, before the actions, with a 1px rust left rule and 16px inset: pre-alpha, private source, no public download, real-device testing (Gate 1) pending.
-- **Today band:** immediately follows the hero, with a 25–32px heading and three compact 14px ordered lines for exact-model research, keeping the vendor app and pairing, and returning to this page for status. Lines wrap naturally on phones.
+- **Today band:** immediately follows the hero, with a 25–32px heading and three 15px ordered steps for exact-model research, keeping the vendor app and pairing, and returning to this page for status. Each step has a bold rust numeral (a CSS counter) in a 2ch hanging column. At 951px and above the steps sit in three columns, each under a 1px rule; below that they stack.
 
 ### Status badge
 - A 1px sage-line border, sage text, an 11px uppercase mono label, padding 8px 11px, and a 6px --status-ready dot. It is used once, in the header ("Pre-alpha").
@@ -376,6 +376,7 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 - Developer-only detail goes into a "Notes for developers" details element in the contributor section, using the paper ground and the same rust chevron as the FAQ.
 
 ### Workbench (signature component)
+- **Intro:** the preview heading is followed by a 16px muted paragraph at measure, left-aligned like every other section intro.
 - **Bench visual** (--bench): a CSS-drawn lamp (shade clip-path, stem, base, and a blurred glow driven by --light and --glow through .level-* and .tone-*). Labels: "SIMULATED DEVICE / LAMP 01" and "● BROWSER ONLY".
 - **Controls** (--paper-raised):
   - an h3 "Control the simulation." (no label above it);
@@ -388,7 +389,7 @@ There is one authored moment: the control-and-readback loop of the browser lamp.
 
 ### Navigation
 - **Header row:** the wordmark (26px bold, -.04em, rust glyph and full stop), five in-page links in page order (Today, Device check, Preview, For contributors, Status; 44px targets). The contributor link is a label, not an invitation: there is no public repository to contribute to, and scripts/check_site.py rejects nav labels such as Contribute, Download, Install or Get started, and the status badge.
-- **Narrow screens:** at 760px and below the nav wraps onto its own row; at 620px and below it is a two-column grid with Today spanning the first row.
+- **Narrow screens:** at 950px and below the nav moves onto its own row; at 620px and below it breaks into two even rows after Preview.
 - A skip link appears on focus.
 
 ### Hero diagram

@@ -23,8 +23,8 @@
 <meta name="twitter:description" content="Pre-alpha, source private. Check whether a free project already supports your Bluetooth device, and investigate the rest locally. Integrations are drafts.">
 <meta name="twitter:image:alt" content="afterlit: A second life for your smart devices. A lamp connects to a local computer. Pre-alpha, with hardware validation pending.">
 <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="./styles.css?v=20261029-10">
-<script src="./site.js?v=20261029-10" defer></script>
+<link rel="stylesheet" href="./styles.css?v=20261031-1">
+<script src="./site.js?v=20261031-1" defer></script>
 <title>afterlit: life after the cloud</title>
 </head>
 <body>
@@ -48,7 +48,7 @@
 <div><h2 id="check-title">Is your device already supported?</h2>
 <p>Useful hardware shouldn't expire with a server. <code>afterlit check</code> compares a name, brand or model against a small local list without scanning, connecting or writing.</p>
 <p>No match means "not freed yet", not that no project exists; dangerous names, including substrings, and excluded families are refused even when harmless. Local recipes require your own folder; no public library exists.</p>
-<p>"is", "is likely" and "may be ... (unconfirmed match)" distinguish specific patterns, look-alikes and loose hints: leads, not proof.</p></div>
+<p>Answers say "is", "is likely" or "may be ... (unconfirmed match)" to separate specific patterns, look-alikes and loose hints: leads, not proof.</p></div>
 <div class="terminal"><div class="terminal-head"><span>LOCAL TERMINAL</span><span>NO RADIO USED</span></div><pre tabindex="0" role="region" aria-label="Example device checks"><code><span class="ln"><span aria-hidden="true">$</span> uv run afterlit check "ELK-BLEDOM 1A2B"</span>
 <span class="ln">"ELK-BLEDOM 1A2B" is ELK-BLEDOM / duoCo Strip LED strips. Already supported by elkbledom (Home Assistant custom integration).</span>
 
